@@ -1,0 +1,56 @@
+{# SPDX-License-Identifier: AGPL-3.0-or-later. Éditeur d'un rapport (D-REP-017) : en-tête, colonnes (période décalée et étendue, ou formule sur les colonnes), lignes (sorte, code, libellé, formule contrôlée au changement, style, retrait, signe, masquage, suppression) ; ajout de ligne et aperçu sur une période en HTMX ; sans JavaScript, des lignes libres et l'enregistrement suffisent. #}{% extend "ui/base.html" %}
+{% block title %}{{ title }}{% endblock title %}
+{% block scripts %}<link rel="stylesheet" href="{% asset 'reports/css/reports.css' %}">{% endblock scripts %}
+{% block crumbs %}{% include "ui/_crumbs.html" %}{% endblock crumbs %}
+{% block heading %}{{ title }}{% endblock heading %}
+{% block content %}
+<p class="pd-muted mb-3">{% translate "reports_ui.editor.intro" %}</p>
+<form method="post" action="{{ form_action }}" class="pd-form rep-editor" novalidate id="rep-editor" hx-boost="false">
+  {% csrf_input %}
+  {% if form.base_errors %}<div class="notification is-danger is-light pd-alert" role="alert" id="pd-form-errors">{% include "ui/_icon.html" with name="triangle-alert" %}<div>{% for message in form.base_errors %}<p>{{ message }}</p>{% endfor %}</div></div>{% endif %}
+  <section class="pd-panel" aria-labelledby="rep-general-title">
+    <header><h2 id="rep-general-title">{% translate "reports_ui.editor.general" %}</h2></header>
+    <div class="pd-body"><div class="pd-form-grid">{% for field in form.fields %}{% include "ui/_field.html" %}{% endfor %}</div></div>
+  </section>
+  <section class="pd-panel" aria-labelledby="rep-columns-title">
+    <header><h2 id="rep-columns-title">{% translate "reports_ui.editor.columns" %}</h2></header>
+    <div class="pd-body"><p class="pd-muted">{% translate "reports_ui.editor.columns_help" %}</p></div>
+    <div class="pd-scroll"><table class="table is-fullwidth is-narrow pd-table">
+      <thead><tr><th scope="col">{% translate "reports_ui.editor.code" %}</th><th scope="col">{% translate "reports_ui.editor.label" %}</th><th scope="col">{% translate "reports_ui.editor.kind" %}</th><th scope="col">{% translate "reports_ui.editor.span" %}</th><th scope="col">{% translate "reports_ui.editor.shift" %}</th><th scope="col">{% translate "reports_ui.editor.formula" %}</th><th scope="col">{% translate "reports_ui.editor.delete" %}</th></tr></thead>
+      <tbody>{% for column in columns %}<tr>
+        <td><input class="input is-small pd-mono" name="columns[{{ column.index }}].code" value="{{ column.code }}" maxlength="20" size="6" aria-label="{% translate 'reports_ui.editor.code' %}"></td>
+        <td><input class="input is-small" name="columns[{{ column.index }}].label" value="{{ column.label }}" maxlength="60" aria-label="{% translate 'reports_ui.editor.label' %}"></td>
+        <td><div class="select is-small"><select name="columns[{{ column.index }}].kind" aria-label="{% translate 'reports_ui.editor.kind' %}">{% for option in column_kinds %}<option value="{{ option.value }}"{% if option.value == column.kind %} selected{% endif %}>{{ option.label }}</option>{% endfor %}</select></div></td>
+        <td><div class="select is-small"><select name="columns[{{ column.index }}].span" aria-label="{% translate 'reports_ui.editor.span' %}">{% for option in spans %}<option value="{{ option.value }}"{% if option.value == column.span %} selected{% endif %}>{{ option.label }}</option>{% endfor %}</select></div></td>
+        <td><input class="input is-small pd-mono" name="columns[{{ column.index }}].shift" value="{{ column.shift }}" size="5" placeholder="-1" aria-label="{% translate 'reports_ui.editor.shift' %}"></td>
+        <td><input class="input is-small pd-mono" name="columns[{{ column.index }}].formula" value="{{ column.formula }}" placeholder="@N - @N1" aria-label="{% translate 'reports_ui.editor.formula' %}" hx-post="{{ check_url }}?kind=column&amp;field=columns%5B{{ column.index }}%5D.formula" hx-trigger="change" hx-target="#rep-ccheck-{{ column.index }}"><p class="help is-danger rep-check" id="rep-ccheck-{{ column.index }}" aria-live="polite"></p>{% if column.errors %}<p class="help is-danger">{{ column.errors }}</p>{% endif %}</td>
+        <td><label class="checkbox"><input type="checkbox" name="columns[{{ column.index }}].delete" value="1"> <span class="is-sr-only">{% translate "reports_ui.editor.delete" %}</span></label></td>
+      </tr>{% endfor %}</tbody>
+    </table></div>
+  </section>
+  <section class="pd-panel" aria-labelledby="rep-lines-title">
+    <header><h2 id="rep-lines-title">{% translate "reports_ui.editor.lines" %}</h2></header>
+    <div class="pd-body"><p class="pd-muted">{% translate "reports_ui.editor.lines_help" %}</p></div>
+    <div class="pd-scroll"><table class="table is-fullwidth is-narrow pd-table">
+      <thead><tr><th scope="col">{% translate "reports_ui.editor.position" %}</th><th scope="col">{% translate "reports_ui.editor.kind" %}</th><th scope="col">{% translate "reports_ui.editor.code" %}</th><th scope="col">{% translate "reports_ui.editor.label" %}</th><th scope="col">{% translate "reports_ui.editor.formula" %}</th><th scope="col">{% translate "reports_ui.editor.style" %}</th><th scope="col">{% translate "reports_ui.editor.indent" %}</th><th scope="col">{% translate "reports_ui.editor.options" %}</th></tr></thead>
+      <tbody id="rep-lines">{% for line in lines %}{% include "reports/_line_row.html" %}{% endfor %}</tbody>
+    </table></div>
+    <div class="pd-body"><input type="hidden" id="rep-next" name="index" value="{{ next_index }}"><button class="button is-small" type="button" hx-get="{{ row_url }}" hx-include="#rep-next" hx-target="#rep-lines" hx-swap="beforeend">{% include "ui/_icon.html" with name="plus" %}<span>{% translate "reports_ui.editor.add_line" %}</span></button></div>
+  </section>
+  {% include "reports/_help.html" %}
+  <section class="pd-panel" aria-labelledby="rep-preview-title">
+    <header><h2 id="rep-preview-title">{% translate "reports_ui.editor.preview" %}</h2></header>
+    <div class="pd-body pd-inline-form">
+      <label class="label" for="rep-preview-from">{% translate "reports_ui.run.from" %}</label><input class="input is-small" type="date" id="rep-preview-from" name="preview_from">
+      <label class="label" for="rep-preview-to">{% translate "reports_ui.run.to" %}</label><input class="input is-small" type="date" id="rep-preview-to" name="preview_to">
+      <label class="label" for="rep-preview-step">{% translate "reports_ui.run.step" %}</label><div class="select is-small"><select id="rep-preview-step" name="preview_step">{% for option in steps %}<option value="{{ option.value }}"{% if option.selected %} selected{% endif %}>{{ option.label }}</option>{% endfor %}</select></div>
+      <button class="button is-small" type="button" hx-post="{{ preview_url }}" hx-target="#rep-preview" hx-swap="innerHTML">{% include "ui/_icon.html" with name="refresh-cw" %}<span>{% translate "reports_ui.editor.preview_button" %}</span></button>
+    </div>
+    <div id="rep-preview" aria-live="polite"><div class="pd-body"><p class="pd-muted">{% translate "reports_ui.editor.preview_help" %}</p></div></div>
+  </section>
+  <div class="pd-form-actions">
+    <button class="button is-primary pd-touch" type="submit">{% translate "ui.forms.save" %}</button>
+    <a href="{{ cancel_url }}">{% translate "ui.forms.cancel" %}</a>
+  </div>
+</form>
+{% endblock content %}

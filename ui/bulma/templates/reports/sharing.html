@@ -1,0 +1,36 @@
+{# SPDX-License-Identifier: AGPL-3.0-or-later. Partage des définitions (D-REP-014 à D-REP-016) : export des rapports et listings cochés (JSON documenté), import d'un fichier JSON ou d'une définition de la source legacy, bilan de l'import, définitions fournies à installer. #}{% extend "ui/base.html" %}
+{% block title %}{{ title }}{% endblock title %}
+{% block scripts %}<link rel="stylesheet" href="{% asset 'reports/css/reports.css' %}">{% endblock scripts %}
+{% block crumbs %}{% include "ui/_crumbs.html" %}{% endblock crumbs %}
+{% block heading %}{{ title }}{% endblock heading %}
+{% block content %}
+<p class="pd-muted mb-3">{% translate "reports_ui.sharing.intro" %}</p>
+{% if errors %}<div class="notification is-danger is-light pd-alert" role="alert" data-rep-import-errors>{% include "ui/_icon.html" with name="triangle-alert" %}<div>{% for message in errors %}<p>{{ message }}</p>{% endfor %}</div></div>{% endif %}
+{% if created || replaced || skipped %}<div class="notification is-success is-light pd-alert" role="status" data-rep-import-report>{% include "ui/_icon.html" with name="check" %}<div>
+  {% if created %}<p>{% translate "reports_ui.sharing.created" %} {{ created }}</p>{% endif %}
+  {% if replaced %}<p>{% translate "reports_ui.sharing.replaced" %} {{ replaced }}</p>{% endif %}
+  {% if skipped %}<p>{% translate "reports_ui.sharing.skipped" %} {{ skipped }}</p>{% endif %}
+</div></div>{% endif %}
+{% if issues %}<div class="notification is-warning is-light pd-alert" role="status">{% include "ui/_icon.html" with name="triangle-alert" %}<div>{% for message in issues %}<p>{{ message }}</p>{% endfor %}</div></div>{% endif %}
+<section class="pd-panel" aria-labelledby="rep-export-title">
+  <header><h2 id="rep-export-title">{% translate "reports_ui.sharing.export" %}</h2></header>
+  <div class="pd-body">{% if reports_list || listings_list %}<form method="post" action="{{ export_url }}" class="pd-form" hx-boost="false">{% csrf_input %}
+    {% if reports_list %}<fieldset class="pd-fieldset"><legend>{% translate "reports.menu.reports_advanced" %}</legend>{% for item in reports_list %}<label class="checkbox pd-check"><input type="checkbox" name="report_ids" value="{{ item.id }}"> <span class="pd-mono">{{ item.code }}</span> · {{ item.name }}</label><br>{% endfor %}</fieldset>{% endif %}
+    {% if listings_list %}<fieldset class="pd-fieldset"><legend>{% translate "reports.menu.reports_listings" %}</legend>{% for item in listings_list %}<label class="checkbox pd-check"><input type="checkbox" name="listing_ids" value="{{ item.id }}"> <span class="pd-mono">{{ item.code }}</span> · {{ item.name }}</label><br>{% endfor %}</fieldset>{% endif %}
+    <div class="pd-form-actions"><button class="button is-primary pd-touch" type="submit">{% include "ui/_icon.html" with name="download" %}<span>{% translate "reports_ui.sharing.export_submit" %}</span></button></div>
+  </form>{% else %}<p class="pd-muted">{% translate "reports_ui.sharing.nothing" %}</p>{% endif %}</div>
+</section>
+<section class="pd-panel" aria-labelledby="rep-import-title">
+  <header><h2 id="rep-import-title">{% translate "reports_ui.sharing.import" %}</h2></header>
+  <div class="pd-body"><p class="pd-muted">{% translate "reports_ui.sharing.import_help" %}</p>
+  <form method="post" action="{{ import_url }}" class="pd-form" enctype="multipart/form-data" hx-boost="false">{% csrf_input %}
+    <div class="field"><label class="label" for="rep-import-file">{% translate "reports_ui.sharing.file" %}</label><div class="control"><input class="input" type="file" id="rep-import-file" name="file" accept=".json,.bin,application/json,text/plain"></div></div>
+    {% if can_replace %}<label class="checkbox pd-check"><input type="checkbox" name="replace" value="1"> {% translate "reports_ui.sharing.replace" %}</label>{% endif %}
+    <div class="pd-form-actions"><button class="button is-primary pd-touch" type="submit">{% include "ui/_icon.html" with name="upload" %}<span>{% translate "reports_ui.sharing.import_submit" %}</span></button></div>
+  </form></div>
+</section>
+<section class="pd-panel" aria-labelledby="rep-starters-title">
+  <header><h2 id="rep-starters-title">{% translate "reports_ui.sharing.starters" %}</h2></header>
+  <div class="pd-body"><dl class="pd-dl">{% for item in starters %}<dt><span class="pd-mono">{{ item.code }}</span> · {{ item.name }} <span class="tag is-light">{{ item.kind }}</span></dt><dd><p>{{ item.description }}</p><form method="post" action="{{ item.url }}" class="pd-action-form" hx-boost="false">{% csrf_input %}<button class="button is-small" type="submit">{% include "ui/_icon.html" with name="plus" %}<span>{% translate "reports_ui.sharing.install" %}</span></button></form></dd>{% endfor %}</dl></div>
+</section>
+{% endblock content %}

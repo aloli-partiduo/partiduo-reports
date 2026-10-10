@@ -1,0 +1,8 @@
+{# SPDX-License-Identifier: AGPL-3.0-or-later. Rapport calculé : une colonne par période ou formule, lignes mises en page (titres, sous-totaux, totaux, retraits, comptes d'une liste), montants révisés signalés ; avertissements du calcul. Sert aussi de fragment HTMX à l'aperçu de l'éditeur. #}{% include "reports/_warnings.html" %}
+<div class="pd-scroll" id="rep-run-region">
+  <table class="table is-fullwidth is-narrow pd-table rep-run" id="rep-run">
+    <caption class="is-sr-only">{{ period }}</caption>
+    <thead><tr><th scope="col">{% translate "reports.export.label" %}</th>{% for column in run_columns %}<th scope="col" class="amount">{{ column.label }}{% if column.period %}<br><span class="pd-muted rep-period">{{ column.period }}</span>{% endif %}</th>{% endfor %}</tr></thead>
+    <tbody>{% for line in run_lines %}<tr class="{{ line.css }}"{% if line.code %} data-rep-line="{{ line.code }}"{% endif %}><th scope="row" class="rep-label">{% if line.blank %}&nbsp;{% else %}{{ line.label }}{% endif %}</th>{% for cell in line.children %}<td class="amount{% if cell.revised %} rep-revised{% endif %}">{{ cell.text }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+  </table>
+</div>

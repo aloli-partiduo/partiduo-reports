@@ -1,0 +1,29 @@
+{# SPDX-License-Identifier: AGPL-3.0-or-later. Révision et conservation d'une déclaration (D-REP-009) : titre, description, montants des lignes modifiables (les lignes qui les citent sont recalculées à l'enregistrement). #}{% extend "ui/base.html" %}
+{% block title %}{{ title }}{% endblock title %}
+{% block scripts %}<link rel="stylesheet" href="{% asset 'reports/css/reports.css' %}">{% endblock scripts %}
+{% block crumbs %}{% include "ui/_crumbs.html" %}{% endblock crumbs %}
+{% block heading %}{{ title }}{% endblock heading %}
+{% block content %}
+<p class="pd-muted mb-3">{% translate "reports_ui.keep.intro" %}</p>
+{% if error %}<div class="notification is-danger is-light pd-alert" role="alert">{% include "ui/_icon.html" with name="triangle-alert" %}<div><p>{{ error }}</p></div></div>{% endif %}
+{% include "reports/_warnings.html" %}
+<form method="post" action="{{ form_action }}" class="pd-form" novalidate hx-boost="false">
+  {% csrf_input %}
+  <input type="hidden" name="from" value="{{ from }}"><input type="hidden" name="to" value="{{ to }}"><input type="hidden" name="step" value="{{ step }}">
+  <section class="pd-panel" aria-labelledby="rep-keep-title">
+    <header><h2 id="rep-keep-title">{{ period }}</h2></header>
+    <div class="pd-body"><div class="pd-form-grid">
+      <div class="field"><label class="label" for="rep-keep-name">{% translate "reports_ui.keep.title_field" %}</label><div class="control"><input class="input" id="rep-keep-name" name="title" maxlength="255" placeholder="{% translate 'reports_ui.keep.title_placeholder' %}"></div></div>
+      <div class="field pd-wide"><label class="label" for="rep-keep-description">{% translate "reports_ui.reports.description" %}</label><div class="control"><textarea class="textarea" id="rep-keep-description" name="description" rows="2"></textarea></div></div>
+    </div></div>
+    <div class="pd-scroll"><table class="table is-fullwidth is-narrow pd-table rep-run" id="rep-keep">
+      <thead><tr><th scope="col">{% translate "reports.export.label" %}</th>{% for column in run_columns %}<th scope="col" class="amount">{{ column.label }}</th>{% endfor %}</tr></thead>
+      <tbody>{% for line in run_lines %}<tr class="{{ line.css }}"><th scope="row" class="rep-label">{% if line.blank %}&nbsp;{% else %}{{ line.label }}{% endif %}</th>{% for cell in line.children %}<td class="amount">{% if cell.name %}<input class="input is-small rep-amount-input" name="{{ cell.name }}" value="{{ cell.input }}" inputmode="decimal" aria-label="{{ line.label }}">{% else %}{{ cell.text }}{% endif %}</td>{% endfor %}</tr>{% endfor %}</tbody>
+    </table></div>
+  </section>
+  <div class="pd-form-actions">
+    <button class="button is-primary pd-touch" type="submit">{% translate "reports_ui.keep.submit" %}</button>
+    <a href="{{ cancel_url }}">{% translate "ui.forms.cancel" %}</a>
+  </div>
+</form>
+{% endblock content %}

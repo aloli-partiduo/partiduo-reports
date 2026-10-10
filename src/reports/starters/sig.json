@@ -1,0 +1,42 @@
+{
+  "format": "partiduo-reports",
+  "version": 1,
+  "generator": "partiduo-reports",
+  "reports": [
+    {
+      "code": "SIG",
+      "name": "Soldes intermédiaires de gestion",
+      "description": "Soldes intermédiaires de gestion du plan comptable général, exercice et exercice précédent.",
+      "decimals": 0,
+      "columns": [
+        {"code": "N", "label": "N", "kind": "period", "span": "period", "shift_months": 0, "formula": ""},
+        {"code": "N1", "label": "N-1", "kind": "period", "span": "period", "shift_months": -12, "formula": ""},
+        {"code": "VAR", "label": "Variation", "kind": "formula", "span": "period", "shift_months": 0, "formula": "@N - @N1"},
+        {"code": "PCT", "label": "%", "kind": "formula", "span": "period", "shift_months": 0, "formula": "round(pct(@N - @N1, abs(@N1)), 1)"}
+      ],
+      "lines": [
+        {"kind": "title", "label": "Soldes intermédiaires de gestion"},
+        {"kind": "heading1", "label": "Marge commerciale"},
+        {"kind": "formula", "code": "VM", "label": "Ventes de marchandises", "formula": "[707%-S] + [7097%-S]", "indent": 1},
+        {"kind": "formula", "code": "CMV", "label": "Coût d'achat des marchandises vendues", "formula": "[607%-s] + [6097%-s] + [6037%-s]", "indent": 1},
+        {"kind": "formula", "code": "MC", "label": "Marge commerciale", "formula": "$VM - $CMV", "style": "bold"},
+        {"kind": "heading1", "label": "Valeur ajoutée"},
+        {"kind": "formula", "code": "PROD", "label": "Production de l'exercice", "formula": "[70%-S; except=707,7097] + [71%-S] + [72%-S]", "indent": 1},
+        {"kind": "formula", "code": "CONSO", "label": "Consommations en provenance de tiers", "formula": "[60%-s; except=607,6097,6037] + [61%-s] + [62%-s]", "indent": 1},
+        {"kind": "formula", "code": "VA", "label": "Valeur ajoutée", "formula": "$MC + $PROD - $CONSO", "style": "bold"},
+        {"kind": "heading1", "label": "Excédent brut d'exploitation"},
+        {"kind": "formula", "code": "SUBV", "label": "Subventions d'exploitation", "formula": "[74%-S]", "indent": 1},
+        {"kind": "formula", "code": "IMPOTS", "label": "Impôts, taxes et versements assimilés", "formula": "[63%-s]", "indent": 1},
+        {"kind": "formula", "code": "PERSO", "label": "Charges de personnel", "formula": "[64%-s]", "indent": 1},
+        {"kind": "formula", "code": "EBE", "label": "Excédent brut d'exploitation", "formula": "$VA + $SUBV - $IMPOTS - $PERSO", "style": "bold"},
+        {"kind": "formula", "code": "RE", "label": "Résultat d'exploitation", "formula": "$EBE + [75%-S] + [781%-S] + [791%-S] - [65%-s] - [681%-s]", "style": "bold"},
+        {"kind": "formula", "code": "RF", "label": "Résultat financier", "formula": "[76%-S] + [786%-S] + [796%-S] - [66%-s] - [686%-s]", "indent": 1},
+        {"kind": "formula", "code": "RCAI", "label": "Résultat courant avant impôts", "formula": "$RE + $RF", "style": "bold"},
+        {"kind": "formula", "code": "REX", "label": "Résultat exceptionnel", "formula": "[77%-S] + [787%-S] + [797%-S] - [67%-s] - [687%-s]", "indent": 1},
+        {"kind": "formula", "code": "IS", "label": "Participation et impôts sur les bénéfices", "formula": "[69%-s]", "indent": 1},
+        {"kind": "formula", "code": "RES", "label": "Résultat de l'exercice", "formula": "$RCAI + $REX - $IS", "style": "total"}
+      ]
+    }
+  ],
+  "listings": []
+}

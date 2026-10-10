@@ -1,0 +1,1 @@
+{# SPDX-License-Identifier: AGPL-3.0-or-later. Fragment HTMX : erreurs qui empêchent l'aperçu d'une définition. #}<div class="pd-body" data-rep-preview-errors><div class="notification is-warning is-light pd-alert" role="status">{% include "ui/_icon.html" with name="triangle-alert" %}<div>{% for message in errors %}<p>{{ message }}</p>{% endfor %}</div></div></div>

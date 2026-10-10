@@ -1,0 +1,39 @@
+name: partiduo-reports
+version: 0.1.0
+
+description: |
+  Extension des rapports avancés et des listings de Partiduo (ADR-003) :
+  rapports paramétrables par lignes et colonnes, formules sûres sur les
+  comptes, les fiches, l'analytique et les périodes (analyseur dédié, calcul
+  en décimal, aucun SQL fourni par l'utilisateur), mise en page, déclarations
+  calculées et conservées ; listings de fiches à colonnes paramétrables,
+  source de publipostage ; exports CSV, ODS et PDF (par le socle) ;
+  définitions partageables entre dossiers par un format JSON documenté.
+
+authors:
+  - Philippe Nénert <it+claude.ai@aloli.fr>
+
+crystal: ">= 1.19.1"
+
+license: AGPL-3.0-or-later
+
+targets:
+  partiduo-reports-manage:
+    main: manage.cr
+
+dependencies:
+  # Le cœur : registre, événements et contrat Partiduo::Api (Comptabilité,
+  # fiches, analytique, exercices, réglages du dossier, PDF neutre).
+  partiduo:
+    path: ../partiduo-app
+  marten:
+    path: ../../marten
+
+development_dependencies:
+  # L'interface qui monte ui/bulma/ : nécessaire aux specs et à manage.cr ;
+  # la distribution l'apporte elle-même.
+  partiduo-ui-bulma:
+    path: ../partiduo-ui-bulma
+  ameba:
+    github: crystal-ameba/ameba
+    version: "~> 1.6"

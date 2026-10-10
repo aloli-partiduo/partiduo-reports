@@ -1,0 +1,8 @@
+{# SPDX-License-Identifier: AGPL-3.0-or-later. Listing calculé : une ligne par fiche (case à cocher pour la conservation si selectable), une colonne par code, totaux des montants ; avertissements du calcul. Sert aussi de fragment HTMX à l'aperçu de l'éditeur. #}{% include "reports/_warnings.html" %}
+<p class="is-sr-only" role="status">{{ count }}</p>
+<div class="pd-scroll"><table class="table is-fullwidth is-narrow is-hoverable pd-table" id="rep-listing">
+  <caption class="is-sr-only">{{ period }}</caption>
+  <thead><tr>{% if selectable %}<th scope="col"><span class="is-sr-only">{% translate "reports_ui.listings.select" %}</span></th>{% endif %}<th scope="col">{% translate "reports.export.card" %}</th>{% for column in listing_columns %}<th scope="col"{% if column.amount %} class="amount"{% endif %}>{{ column.label }}</th>{% endfor %}</tr></thead>
+  <tbody>{% if listing_rows %}{% for row in listing_rows %}<tr>{% if selectable %}<td><input type="checkbox" name="card_ids" value="{{ row.card_id }}" checked aria-label="{{ row.card_name }}"></td>{% endif %}<th scope="row" class="pd-mono">{{ row.card_code }}</th>{% for cell in row.children %}<td{% if cell.amount %} class="amount"{% endif %}>{{ cell.text }}</td>{% endfor %}</tr>{% endfor %}{% else %}<tr><td colspan="99" class="pd-muted pd-empty">{% translate "reports_ui.listings.empty" %}</td></tr>{% endif %}</tbody>
+  {% if listing_totals %}<tfoot><tr class="pd-row-total">{% if selectable %}<td></td>{% endif %}<th scope="row">{% translate "reports.export.total" %}</th>{% for cell in listing_totals %}<td{% if cell.amount %} class="amount"{% endif %}>{{ cell.text }}</td>{% endfor %}</tr></tfoot>{% endif %}
+</table></div>

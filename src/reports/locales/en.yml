@@ -1,0 +1,197 @@
+en:
+  reports:
+    module:
+      name: "Advanced reports and listings"
+    permissions:
+      read: "Compute and export reports and listings, view kept declarations and listings"
+      design: "Define, copy, import and export reports and listings; keep a declaration or a listing"
+      admin: "Delete kept declarations and listings; replace a definition on import"
+    menu:
+      reports_advanced: "Advanced reports"
+      reports_listings: "Card listings"
+      reports_archive: "Kept declarations and listings"
+      reports_sharing: "Reports and listings: sharing"
+    columns:
+      default: "Amount"
+    copy_name: "%{name} (copy)"
+    answers:
+      "yes": "Yes"
+      "no": "No"
+    export:
+      label: "Label"
+      card: "Card"
+      total: "Total"
+    line_kinds:
+      title: "Main title"
+      heading1: "Heading"
+      heading2: "Subheading"
+      heading3: "Minor heading"
+      text: "Text"
+      note: "Note"
+      formula: "Formula"
+      accounts: "Account list"
+      blank: "Blank line"
+      account: "Account"
+    line_styles:
+      normal: "Normal"
+      bold: "Subtotal (bold)"
+      total: "Total"
+    column_kinds:
+      period: "Period"
+      formula: "Formula on columns"
+    spans:
+      period: "Requested period"
+      ytd: "Since the start of the financial year"
+      year: "Whole financial year"
+      opening: "Before the period (opening)"
+      month: "Month of the end date"
+    steps:
+      none: "None (a single period)"
+      week: "Weekly"
+      fortnight: "Fortnightly"
+      month: "Monthly"
+      bimester: "Every two months"
+      quarter: "Quarterly"
+      semester: "Half-yearly"
+      year: "Yearly"
+    sources:
+      field: "Card field"
+      attribute: "Category attribute"
+      formula: "Formula"
+    card_fields:
+      code: "Code (quick code)"
+      name: "Name"
+      category: "Category"
+      kind: "Kind"
+      description: "Description"
+      vat_number: "VAT number"
+      siren: "SIREN"
+      siret: "SIRET"
+      email: "Email"
+      phone: "Phone"
+      contact_name: "Contact"
+      address_line1: "Address"
+      address_line2: "Address line 2"
+      postcode: "Postcode"
+      city: "City"
+      country: "Country"
+      iban: "IBAN"
+      bic: "BIC"
+      enabled: "Active"
+      sale_price: "Sale price"
+      purchase_price: "Purchase price"
+    operators:
+      eq: "equal to"
+      ne: "different from"
+      lt: "less than"
+      le: "less than or equal to"
+      gt: "greater than"
+      ge: "greater than or equal to"
+      contains: "contains"
+    snapshot_kinds:
+      declaration: "Declaration"
+      listing: "Listing"
+    formats:
+      csv: "CSV"
+      ods: "ODS (spreadsheet)"
+      pdf: "PDF"
+    starters:
+      sig:
+        name: "Intermediate management balances (France)"
+        description: "Trading margin, value added, gross operating surplus, operating, financial, exceptional and net results; financial year, previous year, change."
+      clients_ca:
+        name: "Customers: turnover and balance"
+        description: "One row per active customer: city, email, turnover for the period, account balance; customers without turnover left out."
+    issues:
+      current_card: "The current card ({*}, card=*) only makes sense in a listing: zero amount."
+      scan_truncated: "More than %{max} entries to read for a reference with a counterpart or a card: computation truncated."
+      ledger_unknown: "Journal %{code} not found in this company file: ignored."
+      module_disabled: "Module %{code} is inactive: its amounts are zero."
+      forbidden: "Missing permission %{permission}: the amounts it protects are zero."
+      analytic_unknown: "Analytic post %{code} not found: zero amount."
+      analytic_ambiguous: "Analytic post %{code} exists in several plans: specify “plan=”."
+      card_unknown: "Card %{code} not found: zero amount."
+      cycle: "Line %{line} refers to itself, directly or not: zero amount."
+      formula_error: "Formula of %{line} cannot be computed (%{error}): zero amount."
+      category_unknown: "Card category %{code} not found in this company file: empty listing."
+      cards_truncated: "More than %{max} cards: listing truncated."
+      legacy_line: "Line “%{line}” not converted (%{formula}): kept as a note, to review."
+      legacy_date_paid: "Line “%{line}”: the payment or due date filter is not carried over (entry date)."
+      legacy_vat: "Line “%{line}”: the total per VAT code is not carried over (see VAT returns)."
+      legacy_reconciled: "Line “%{line}”: the total of reconciled operations is not carried over."
+    errors:
+      code:
+        invalid: "Code: a letter, then letters, digits or “_”, 20 characters at most."
+        taken: "This code is already taken."
+        duplicate: "This code appears twice."
+      name:
+        blank: "The name is required."
+        too_long: "The name cannot exceed %{max} characters."
+      decimals:
+        range: "Decimals range from 0 to 2."
+      columns:
+        count: "From 1 to %{max} columns."
+      label:
+        blank: "The label is required."
+        too_long: "The label cannot exceed %{max} characters."
+      choice:
+        invalid: "Invalid choice."
+      shift:
+        range: "The shift cannot exceed %{max} months."
+      column:
+        order: "Column %{code} must be defined before this one."
+        unknown: "Unknown column %{code}."
+      lines:
+        count: "From 1 to %{max} lines."
+      indent:
+        range: "Indent ranges from 0 to 5."
+      accounts:
+        single: "An account list cites a single account reference only, for instance [60%-s]."
+      line:
+        unknown: "Line %{code} unknown or without amount."
+        cycle: "Lines refer to each other in a loop."
+      attribute:
+        blank: "Attribute key: lowercase letters, digits or “_”."
+      conditions:
+        count: "%{max} conditions at most."
+      run:
+        dates: "The start date is after the end date."
+      override:
+        unknown: "Revised amount for an unknown line or column (%{line}, %{column})."
+      title:
+        blank: "The title is required."
+        too_long: "The title cannot exceed %{max} characters."
+      keep:
+        none: "Tick at least one card."
+      import:
+        too_large: "File too large (%{max} at most)."
+        json: "This file is not valid JSON."
+        format: "This file is not a reports and listings definitions file."
+        version: "Unknown format version %{version}."
+        empty: "The file contains no definition."
+        count: "%{max} definitions at most per file."
+        structure: "Malformed field %{field}."
+      legacy:
+        format: "This file is not a report definition exported by the original application (RAPAV header)."
+      formula:
+        empty: "The formula is empty."
+        too_long: "Formula too long (%{max} characters at most)."
+        depth: "Formula too deeply nested (%{max} levels at most)."
+        syntax: "Invalid formula at character %{position}."
+        function: "Unknown function: %{name}."
+        arguments: "Wrong number of arguments for %{name}."
+        round: "round: from 0 to %{max} decimals."
+        from: "Invalid FROM clause: %{value}."
+        account: "Invalid account reference: %{value}."
+        card: "Invalid card reference: %{value}."
+        analytic: "Invalid analytic reference: %{value}."
+        analytic_mode: "With “account=”, an analytic post only accepts -s or -S: %{value}."
+        option: "Option “%{name}” unknown, repeated or not allowed here: %{value}."
+        option_value: "Invalid value for option “%{name}”: %{value}."
+        comparison: "if: comparison expected (>, <, >=, <=, =, <>)."
+        line_ref: "A line (%{code}) cannot be cited here."
+        column_ref: "A column (@%{code}) can only be cited in a column formula."
+        current_card: "The current card ({*}, card=*) can only be cited in a listing."
+        reference_in_column: "A column formula only cites columns (@CODE)."
+        line_unknown: "Unknown line %{code}."
+        column_unknown: "Unknown column %{code}."

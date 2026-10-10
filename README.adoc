@@ -1,0 +1,115 @@
+= partiduo-reports — rapports avancés et listings
+:toc: left
+:toc-title: Table des matières
+:icons: font
+
+*Partiduo* est le portage en Crystal de https://noalyss.eu[NOALYSS], logiciel
+libre de comptabilité créé et maintenu par *Dany De Bontridder*. Partiduo
+n'est pas un projet officiel NOALYSS.
+
+Ce dépôt est l'extension `REPORTS` de Partiduo (ADR-003), successeur des
+greffons « Rapport avancé » (RAPAV) et « Listing » de NOALYSS
+(`noalyss-plugins/rapport_avance` et `noalyss-plugins/listing`, la source
+*legacy*) : on en porte les fonctions, pas le code. Un rapport se définit
+par lignes et colonnes, avec des formules sur les comptes, les fiches,
+l'analytique et les périodes, calculées en décimal par le contrat du cœur
+et un analyseur sûr (ni évaluation de code, ni SQL fourni par
+l'utilisateur) ; un listing donne une ligne par fiche, sert de source de
+publipostage et s'inscrit au suivi. Les définitions se partagent entre
+dossiers par un format JSON documenté.
+
+Spécification : `../partiduo-docs/adr/ADR-003-contrat-extensions.adoc`
+(sort des extensions amont), avec ADR-005 (interface), ADR-006
+(Comptabilité), ADR-010 (modèles de documents) et ADR-011 (dossier foyer).
+Décisions (`D-REP-*`), inventaire porté / adapté / refusé et amendements
+proposés : link:DECISIONS.adoc[]. Références : link:doc/api/reports.adoc[]
+(contrat), link:doc/formules.adoc[] (langage de formule),
+link:doc/format-definitions.adoc[] (format de partage).
+
+== Fonctions
+
+[cols="1,3",options="header"]
+|===
+|Fonction |Dans REPORTS
+
+|Rapports
+|Lignes (titres, textes, remarques, formules, listes de comptes, lignes
+vides), styles et retraits ; colonnes de période (décalée, depuis le début
+d'exercice, exercice entier, ouverture, mois) ou de formule (`@N - @N1`) ;
+génération périodique (une colonne par tranche) ; aperçu en HTMX.
+
+|Formules
+|`[70%-S]`, `{CLIENT-s}`, `{{PROJET}}`, options (journaux, exclusions,
+contrepartie, fiche de l'écriture, période), `$CODE`, `@CODE`, `abs`,
+`round`, `min`, `max`, `pos`, `neg`, `pct`, `if`.
+
+|Déclarations
+|Révision des montants puis conservation d'une copie figée ; balises de
+publipostage.
+
+|Listings
+|Fiches d'une catégorie ou d'une nature ; champs, attributs, formules sur
+la fiche ; conditions, tri, totaux ; fiches cochées conservées ; source de
+publipostage ; inscription au suivi.
+
+|Exports
+|CSV, ODS, PDF/A-2b par le socle.
+
+|Partage
+|Export et import JSON, import des définitions `.bin` de la source legacy,
+reprise des rapports personnalisés de la Comptabilité, définitions fournies
+(soldes intermédiaires de gestion, clients).
+|===
+
+== Organisation
+
+[source]
+----
+src/
+├── partiduo-reports.cr        # point d'entrée du shard
+├── partiduo-reports/cli.cr    # migrations : require "partiduo-reports/cli"
+└── reports/                   # métier (application Marten « reports »)
+    ├── app.cr, manifest.cr    # code REPORTS, permissions, menus
+    ├── models/                # tables reports_*
+    ├── migrations/            # 0001 : tables et contraintes
+    ├── services/              # formule, périodes, sources, calculs, exports, partage (interne)
+    ├── api/                   # contrat public Reports::Api
+    ├── starters/              # définitions fournies (JSON)
+    └── locales/               # fr, en, nl
+ui/
+└── bulma/                     # interface pour partiduo-ui-bulma (application « reports_ui »)
+    ├── bulma.cr               # routes sous /ext/REPORTS/
+    ├── handlers/, templates/reports/, assets/reports/, locales/
+----
+
+== Composer une distribution
+
+[source,crystal]
+----
+require "partiduo-ui-bulma/partiduo_ui"
+require "partiduo-reports"
+require "partiduo-reports/ui/bulma"
+# installed_apps += Reports::INSTALLED_APPS + Reports::Ui::INSTALLED_APPS
+# ligne de commande : require "partiduo-reports/cli"
+----
+
+L'extension exige la Comptabilité (`depends_on "ACCOUNTING"`) ; elle
+s'active par dossier (`Partiduo::Api::Modules.activate`, écran
+« Modules »), y compris dans un dossier foyer.
+
+== Commandes
+
+[source,sh]
+----
+cd prod-crystal/partiduo/partiduo-reports
+SKIP_MARTEN_CLI_PRECOMPILATION=1 shards install
+createdb -h /tmp partiduo_test_<agent>
+DATABASE_URL='postgres:///partiduo_test_<agent>?host=/tmp' crystal spec --order random
+crystal tool format src spec ui config scripts manage.cr && bin/ameba
+----
+
+== Version et licence
+
+Numéro dans `shard.yml` seulement (constante `Reports::VERSION` lue à la
+compilation) ; chaque commit en incrémente le dernier chiffre. Licence
+AGPL-3.0-or-later (fichier `LICENSE`).

@@ -1,0 +1,78 @@
+= Format de partage des définitions
+:toc: left
+:toc-title: Table des matières
+:icons: font
+
+Fichier JSON qui porte des rapports et des listings de `partiduo-reports`
+d'un dossier à l'autre (DECISIONS D-REP-014), produit par « Exporter des
+définitions » ou `Reports::Api.export_definitions`, lu par « Importer des
+définitions » ou `Reports::Api.import_definitions`. Encodage UTF-8, 2 Mo et
+200 définitions au plus.
+
+== Enveloppe
+
+[source,json]
+----
+{
+  "format": "partiduo-reports",
+  "version": 1,
+  "generator": "partiduo-reports 0.1.0",
+  "exported_on": "2026-10-10",
+  "reports": [ … ],
+  "listings": [ … ]
+}
+----
+
+`format` et `version` sont obligatoires ; `generator` et `exported_on` sont
+informatifs. Une version inconnue est refusée. Les clés inconnues sont
+ignorées ; une clé absente prend sa valeur par défaut.
+
+== Rapport
+
+[cols="2,1,4",options="header"]
+|===
+|Clé |Défaut |Valeur
+|`code` |— |une lettre, puis lettres, chiffres, `_` (20 au plus), mis en majuscules ; identifie la définition
+|`name` |— |nom (120 caractères au plus)
+|`description` |`""` |texte libre
+|`decimals` |`2` |décimales affichées, de 0 à 2
+|`columns` |`[]` |colonnes (sans colonne : une seule, la période demandée)
+|`lines` |— |lignes, de 1 à 500, dans l'ordre
+|===
+
+Colonne : `code`, `label` (60 au plus), `kind` (`period` ou `formula`),
+`span` (`period`, `ytd`, `year`, `opening`, `month`), `shift_months`
+(entier, de -240 à 240), `formula` (formule de colonne, `@CODE` des
+colonnes précédentes).
+
+Ligne : `kind` (`title`, `heading1`, `heading2`, `heading3`, `text`,
+`note`, `formula`, `accounts`, `blank`), `code` (facultatif, unique),
+`label` (255 au plus), `formula` (pour `formula` et `accounts`), `style`
+(`normal`, `bold`, `total`), `indent` (0 à 5), `negate`, `hidden`
+(booléens).
+
+== Listing
+
+[cols="2,1,4",options="header"]
+|===
+|Clé |Défaut |Valeur
+|`code`, `name`, `description` |— |comme un rapport
+|`category_code` |`""` |code de la catégorie de fiches (vide : toutes)
+|`card_kind` |`""` |nature des fiches (`customer`, `supplier`…, vide : toutes)
+|`include_disabled` |`false` |fiches désactivées comprises
+|`sort_code`, `sort_desc` |`""`, `false` |colonne de tri, décroissant
+|`columns` |— |de 1 à 30 colonnes
+|`conditions` |`[]` |20 conditions au plus
+|===
+
+Colonne : `code`, `label`, `source` (`field`, `attribute`, `formula`),
+`field_name` (champ de la fiche pour `field`, clé d'attribut pour
+`attribute`), `formula`, `hidden`. Condition : `column_code`, `operator`
+(`eq`, `ne`, `lt`, `le`, `gt`, `ge`, `contains`), `value`.
+
+== Portabilité
+
+Les journaux, catégories, fiches et postes analytiques sont cités par leur
+*code*, jamais par un identifiant interne : la définition s'importe dans
+un autre dossier, et ce qui y manque est signalé au calcul. Import tout ou
+rien ; un code déjà pris est ignoré, sauf remplacement demandé.

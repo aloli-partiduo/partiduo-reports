@@ -1,0 +1,90 @@
+= Langage de formule des rapports et des listings
+:toc: left
+:toc-title: Table des matières
+:icons: font
+
+Référence du langage de `partiduo-reports` (DECISIONS D-REP-004). Une
+formule est analysée en arbre puis calculée en décimal (`BigDecimal`) :
+aucune évaluation de code, aucun SQL fourni par l'utilisateur. Les
+montants viennent des éditions de la Comptabilité, de la balance des
+tiers et de l'analytique, lus avec les droits du lecteur.
+
+== Références
+
+[cols="2,5",options="header"]
+|===
+|Écriture |Montant
+
+|`[70%]`, `[70%-S]` |comptes dont le numéro commence par `70`
+|`[706]`, `[706-s]` |le compte `706` seul
+|`{CLIENT1}`, `{CLIENT1-s}` |lignes de la fiche de quick code `CLIENT1` (balance des tiers de sa nature)
+|`{*}` |la fiche de la ligne d'un listing
+|`{{PROJET}}`, `{{PROJET-s}}` |un poste analytique
+|`$CODE` |montant d'une autre ligne du rapport dans la même colonne (dans un listing : autre colonne de la même fiche)
+|`@CODE` |montant d'une autre colonne sur la même ligne (formule de colonne seulement)
+|===
+
+== Suffixe de calcul
+
+[cols="1,4",options="header"]
+|===
+|Suffixe |Valeur
+|aucun |solde en valeur absolue, \|débit − crédit\| (comme la source legacy et le cœur)
+|`-d` |total des débits
+|`-c` |total des crédits
+|`-s` |débit − crédit
+|`-S` |crédit − débit
+|`-D` |somme des soldes débiteurs, compte par compte
+|`-C` |somme des soldes créditeurs, compte par compte
+|===
+
+== Options
+
+Après la tête de la référence, séparées par `;` : `[70%-S; ledger=V01; shift=-1]`.
+
+[cols="2,1,4",options="header"]
+|===
+|Option |Références |Effet
+
+|`ledger=V01,V02` |comptes, fiches |journaux retenus, par leur code (un code introuvable est signalé)
+|`ledger_kind=sale` |comptes, fiches |types de journaux : `purchase`, `sale`, `financial`, `misc`
+|`except=6037,609` |comptes |préfixes exclus
+|`with=41` |comptes |lignes des écritures qui portent aussi un compte commençant par `41` (contrepartie)
+|`card=CLIENT1`, `card=*` |comptes |lignes des écritures où paraît la fiche (`*` : la fiche du listing) ; `[70%-S; card=*]` : chiffre d'affaires d'un client
+|`account=411` |fiches, analytique |restreint aux comptes commençant par `411` ; en analytique, seuls `-s` et `-S`
+|`plan=Projets` |analytique |plan du poste (nom ou identifiant), si le code existe dans plusieurs plans
+|`span=ytd` |toutes |étendue : `period`, `ytd` (début d'exercice), `year` (exercice entier), `opening` (avant la période), `month`
+|`shift=-1`, `shift=-3m` |toutes |décalage en années (ou en mois avec `m`), ajouté à celui de la colonne
+|===
+
+`with=` et `card=` lisent les écritures (20 000 au plus par référence et
+période, au-delà le calcul est tronqué et signalé).
+
+== Opérations et fonctions
+
+* nombres au point décimal ; `+ - * /` ; parenthèses ; signe `-` ;
+* une division par zéro vaut zéro ;
+* `abs(x)`, `round(x)`, `round(x, n)` (`n` de 0 à 10), `min(a, b, …)`,
+  `max(a, b, …)`, `pos(x)` (partie positive), `neg(x)` (partie négative,
+  positive), `pct(a, b)` (`a × 100 / b`, zéro si `b` est nul) ;
+* `if(a > b, x, y)` : comparaisons `>`, `<`, `>=`, `<=`, `=`, `<>` ;
+* `FROM=MM.AAAA` en fin de formule : la période part du premier jour de ce
+  mois (compatibilité avec les rapports personnalisés du cœur).
+
+Limites : 2 000 caractères, 50 niveaux d'imbrication.
+
+== Exemples
+
+[source]
+----
+[707%-S] + [7097%-S]                      ventes de marchandises
+[60%-s; except=603] + [61%-s] + [62%-s]  consommations externes
+$VA + $SUBV - $IMPOTS - $PERSO            excédent brut d'exploitation
+[70%-S; span=year; shift=-1]              ventes de l'exercice précédent entier
+[70%-S; with=41]                          ventes passées contre un compte client
+[70%-S; card=*]                           chiffre d'affaires de la fiche du listing
+{*-s; span=ytd}                           solde de la fiche depuis le début d'exercice
+{{ATELIER-s; account=6}}                  charges ventilées sur le poste ATELIER
+round(pct(@N - @N1, abs(@N1)), 1)         variation en pourcentage (colonne)
+if($RES > 0, $RES * 0.15, 0)              montant conditionnel
+----

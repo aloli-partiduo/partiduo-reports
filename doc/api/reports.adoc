@@ -1,0 +1,101 @@
+= Contrat `Reports::Api`
+:toc: left
+:toc-title: Table des matières
+:icons: font
+
+Contrat public de l'extension `REPORTS` (rapports avancés et listings), sur
+le modèle de `Partiduo::Api` : acteur en premier argument, contrôle d'accès
+en première ligne (extension active, permission), vues immuables,
+commandes qui rendent un `Result` avec des erreurs par champ
+(`reports.errors.*`), dans une transaction. L'interface `ui/bulma/` ne
+passe que par lui. Montants toujours en `BigDecimal`.
+
+Les montants sont lus avec l'acteur par le contrat du cœur : un calcul ne
+montre que ce qu'il peut voir ; une source refusée ou une référence
+introuvable vaut zéro et s'ajoute aux avertissements (`issues`,
+`IssueView(key, params)`, clés `reports.issues.*`).
+
+== Permissions
+
+[cols="1,3",options="header"]
+|===
+|Permission |Ouvre
+|`reports.read` |`reports`, `report`, `run_report`, `report_file`, `report_tags_file`, `check_formula`, `listings`, `listing`, `run_listing`, `listing_file`, `listing_merge_file`, `snapshots`, `snapshot`, `declaration`, `declaration_file`, `declaration_tags_file`, `listing_snapshot`, `listing_snapshot_file`, `starters`
+|`reports.design` |`check_report`, `create_report`, `update_report`, `delete_report`, `copy_report`, `preview_report`, `core_reports`, `import_core_report` (+ `accounting.report.read`), `keep_declaration`, `check_listing`, `create_listing`, `update_listing`, `delete_listing`, `copy_listing`, `preview_listing`, `keep_listing`, `add_to_followup` (+ `followup.action.write`), `export_definitions`, `import_definitions`, `import_legacy`, `install_starter`
+|`reports.admin` |`delete_snapshot`, `import_definitions(…, replace: true)`
+|===
+
+Droits du cœur lus au calcul : `accounting.report.read` (comptes, fiches),
+`accounting.entry.read` (`with=`, `card=`), `accounting.ledger.read`
+(journaux par code), `cards.card.read` (listings, `{QCODE}`),
+`analytic.plan.read` et `analytic.report.read` (`{{POSTE}}`).
+
+== Rapports
+
+* `create_report(actor, ReportInput) : Result(ReportView)`,
+  `update_report(actor, id, ReportInput)` (remplace colonnes et lignes),
+  `check_report`, `delete_report` (les déclarations restent),
+  `copy_report(actor, id)` (code libre `CODE_2`, nom « (copie) »).
+  `ReportInput(code, name, description, decimals, columns, lines)` ;
+  `ColumnInput(code, label, kind, span, shift_months, formula)` ;
+  `LineInput(label, kind, code, formula, style, indent, negate, hidden)`.
+  Erreurs : `code.invalid|taken|duplicate`, `name.blank|too_long`,
+  `decimals.range`, `columns.count`, `label.blank|too_long`,
+  `choice.invalid`, `shift.range`, `column.order`, `lines.count`,
+  `indent.range`, `accounts.single`, `line.unknown|cycle`,
+  `formula.*` (sous `lines[<i>].formula`, `columns[<i>].formula`).
+* `run_report(actor, id, RunInput(date_from, date_to, step, overrides)) : Result(RunView)`
+  — `RunView(columns : RunColumnView(code, label, kind, date_from, date_to),
+  lines : RunLineView(code, label, kind, style, indent, values, account,
+  revised), issues)` ; montants arrondis aux décimales du rapport, au
+  signe affiché ; lignes masquées omises, comptes d'une liste en lignes
+  filles (`account`). Erreurs : `run.dates`, `step` invalide,
+  `override.unknown`.
+* `preview_report(actor, ReportInput, RunInput)` — calcul d'une définition
+  non enregistrée.
+* `report_file(actor, id, RunInput, format)` — `csv`, `ods`, `pdf` ;
+  `report_tags_file(actor, id, RunInput)` — CSV des balises.
+* `check_formula(actor, text, kind)` — `line`, `column`, `listing`.
+* `core_reports(actor)`, `import_core_report(actor, core_id)` — reprise d'un
+  rapport personnalisé de la Comptabilité.
+
+== Déclarations et listings conservés
+
+* `keep_declaration(actor, id, RunInput, KeepInput(title, description)) : Result(DeclarationView)`
+  — calcule (montants révisés compris) et conserve une copie figée.
+* `snapshots(actor, SnapshotQuery(kind, definition_id, limit))`,
+  `snapshot(actor, id)`, `declaration(actor, id)`,
+  `listing_snapshot(actor, id)`, `declaration_file`,
+  `declaration_tags_file`, `listing_snapshot_file(actor, id, format, merge)`.
+* `delete_snapshot(actor, id)` (`reports.admin`).
+
+== Listings
+
+* `create_listing(actor, ListingInput) : Result(ListingView)`,
+  `update_listing`, `check_listing`, `delete_listing`, `copy_listing`.
+  `ListingInput(code, name, description, category_code, card_kind,
+  include_disabled, sort_code, sort_desc, columns, conditions)` ;
+  `ListingColumnInput(code, label, source, field_name, formula, hidden)` ;
+  `ConditionInput(column_code, operator, value)`. Erreurs :
+  `code.*`, `name.*`, `choice.invalid`, `columns.count`,
+  `attribute.blank`, `line.unknown`, `column.unknown`,
+  `conditions.count`, `formula.*`.
+* `run_listing(actor, id, ListingRunInput(date_from, date_to)) : Result(ListingResultView)`
+  — une ligne par fiche (`CellView(text, amount)`), totaux des montants.
+* `preview_listing`, `listing_file(actor, id, run, format)`,
+  `listing_merge_file(actor, id, run)` (source de publipostage).
+* `keep_listing(actor, id, run, KeepInput(title, description, card_ids))` —
+  fiches retenues (vide : toutes ; `keep.none` si aucune ne correspond).
+* `add_to_followup(actor, snapshot_id, FollowupInput(action_type_id, date, title, comment, remind_on, visible_profile_id)) : Result(Int32)`
+  — une action par fiche, tout ou rien.
+
+== Partage
+
+* `export_definitions(actor, report_ids, listing_ids) : FileView` — JSON
+  (`doc/format-definitions.adoc`).
+* `import_definitions(actor, content, replace = false) : Result(ImportView(created, replaced, skipped, issues))`
+  — erreurs `import.*` sous `file`, ou celles des définitions sous
+  `reports[<i>].<champ>`, `listings[<i>].<champ>`.
+* `import_legacy(actor, content)` — définition `.bin` de la source legacy
+  (`legacy.format`).
+* `starters(actor)`, `install_starter(actor, code)` — définitions fournies.

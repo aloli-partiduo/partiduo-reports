@@ -1,0 +1,197 @@
+fr:
+  reports:
+    module:
+      name: "Rapports avancés et listings"
+    permissions:
+      read: "Calculer et exporter les rapports et les listings, consulter les déclarations et listings conservés"
+      design: "Définir, copier, importer et exporter les rapports et les listings ; conserver une déclaration ou un listing"
+      admin: "Effacer les déclarations et listings conservés ; remplacer une définition à l'import"
+    menu:
+      reports_advanced: "Rapports avancés"
+      reports_listings: "Listings de fiches"
+      reports_archive: "Déclarations et listings conservés"
+      reports_sharing: "Rapports et listings : partage"
+    columns:
+      default: "Montant"
+    copy_name: "%{name} (copie)"
+    answers:
+      "yes": "Oui"
+      "no": "Non"
+    export:
+      label: "Libellé"
+      card: "Fiche"
+      total: "Total"
+    line_kinds:
+      title: "Titre principal"
+      heading1: "Titre"
+      heading2: "Sous-titre"
+      heading3: "Intertitre"
+      text: "Texte"
+      note: "Remarque"
+      formula: "Formule"
+      accounts: "Liste de comptes"
+      blank: "Ligne vide"
+      account: "Compte"
+    line_styles:
+      normal: "Normal"
+      bold: "Sous-total (gras)"
+      total: "Total"
+    column_kinds:
+      period: "Période"
+      formula: "Formule sur les colonnes"
+    spans:
+      period: "Période demandée"
+      ytd: "Depuis le début de l'exercice"
+      year: "Exercice entier"
+      opening: "Avant la période (ouverture)"
+      month: "Mois de la date de fin"
+    steps:
+      none: "Aucune (une seule période)"
+      week: "Par semaine"
+      fortnight: "Par quinzaine"
+      month: "Par mois"
+      bimester: "Par bimestre"
+      quarter: "Par trimestre"
+      semester: "Par semestre"
+      year: "Par année"
+    sources:
+      field: "Champ de la fiche"
+      attribute: "Attribut de la catégorie"
+      formula: "Formule"
+    card_fields:
+      code: "Code (quick code)"
+      name: "Nom"
+      category: "Catégorie"
+      kind: "Nature"
+      description: "Description"
+      vat_number: "Numéro de TVA"
+      siren: "SIREN"
+      siret: "SIRET"
+      email: "Courriel"
+      phone: "Téléphone"
+      contact_name: "Contact"
+      address_line1: "Adresse"
+      address_line2: "Complément d'adresse"
+      postcode: "Code postal"
+      city: "Ville"
+      country: "Pays"
+      iban: "IBAN"
+      bic: "BIC"
+      enabled: "Active"
+      sale_price: "Prix de vente"
+      purchase_price: "Prix d'achat"
+    operators:
+      eq: "égal à"
+      ne: "différent de"
+      lt: "inférieur à"
+      le: "inférieur ou égal à"
+      gt: "supérieur à"
+      ge: "supérieur ou égal à"
+      contains: "contient"
+    snapshot_kinds:
+      declaration: "Déclaration"
+      listing: "Listing"
+    formats:
+      csv: "CSV"
+      ods: "ODS (tableur)"
+      pdf: "PDF"
+    starters:
+      sig:
+        name: "Soldes intermédiaires de gestion (France)"
+        description: "Marge commerciale, valeur ajoutée, excédent brut d'exploitation, résultats d'exploitation, financier, exceptionnel et de l'exercice ; exercice, exercice précédent, variation."
+      clients_ca:
+        name: "Clients : chiffre d'affaires et solde"
+        description: "Une ligne par client actif : ville, courriel, chiffre d'affaires de la période, solde du compte ; clients sans chiffre d'affaires écartés."
+    issues:
+      current_card: "La fiche courante ({*}, card=*) n'a de sens que dans un listing : montant nul."
+      scan_truncated: "Plus de %{max} écritures à lire pour une référence avec contrepartie ou fiche : calcul tronqué."
+      ledger_unknown: "Journal %{code} introuvable dans ce dossier : ignoré."
+      module_disabled: "Le module %{code} est inactif : ses montants valent zéro."
+      forbidden: "Droit %{permission} manquant : les montants qu'il protège valent zéro."
+      analytic_unknown: "Poste analytique %{code} introuvable : montant nul."
+      analytic_ambiguous: "Le poste analytique %{code} existe dans plusieurs plans : précisez « plan= »."
+      card_unknown: "Fiche %{code} introuvable : montant nul."
+      cycle: "La ligne %{line} se cite elle-même, directement ou non : montant nul."
+      formula_error: "Formule de %{line} incalculable (%{error}) : montant nul."
+      category_unknown: "Catégorie de fiches %{code} introuvable dans ce dossier : listing vide."
+      cards_truncated: "Plus de %{max} fiches : listing tronqué."
+      legacy_line: "Ligne « %{line} » non convertie (%{formula}) : reprise en remarque, à revoir."
+      legacy_date_paid: "Ligne « %{line} » : le filtre par date de paiement ou d'échéance n'est pas repris (date de l'écriture)."
+      legacy_vat: "Ligne « %{line} » : le total par code de TVA n'est pas repris (voir les déclarations de TVA)."
+      legacy_reconciled: "Ligne « %{line} » : le total des opérations rapprochées n'est pas repris."
+    errors:
+      code:
+        invalid: "Code : une lettre puis des lettres, chiffres ou « _ », 20 caractères au plus."
+        taken: "Ce code est déjà pris."
+        duplicate: "Ce code figure deux fois."
+      name:
+        blank: "Le nom est obligatoire."
+        too_long: "Le nom ne peut dépasser %{max} caractères."
+      decimals:
+        range: "Le nombre de décimales va de 0 à 2."
+      columns:
+        count: "De 1 à %{max} colonnes."
+      label:
+        blank: "Le libellé est obligatoire."
+        too_long: "Le libellé ne peut dépasser %{max} caractères."
+      choice:
+        invalid: "Choix invalide."
+      shift:
+        range: "Le décalage ne peut dépasser %{max} mois."
+      column:
+        order: "La colonne %{code} doit être définie avant celle-ci."
+        unknown: "Colonne %{code} inconnue."
+      lines:
+        count: "De 1 à %{max} lignes."
+      indent:
+        range: "Le retrait va de 0 à 5."
+      accounts:
+        single: "Une liste de comptes ne cite qu'une seule référence de comptes, par exemple [60%-s]."
+      line:
+        unknown: "Ligne %{code} inconnue ou sans montant."
+        cycle: "Les lignes se citent en boucle."
+      attribute:
+        blank: "Clé d'attribut : minuscules, chiffres ou « _ »."
+      conditions:
+        count: "%{max} conditions au plus."
+      run:
+        dates: "La date de début suit la date de fin."
+      override:
+        unknown: "Montant révisé d'une ligne ou d'une colonne inconnue (%{line}, %{column})."
+      title:
+        blank: "Le titre est obligatoire."
+        too_long: "Le titre ne peut dépasser %{max} caractères."
+      keep:
+        none: "Cochez au moins une fiche."
+      import:
+        too_large: "Fichier trop volumineux (%{max} au plus)."
+        json: "Ce fichier n'est pas un JSON valide."
+        format: "Ce fichier n'est pas un fichier de définitions de rapports et de listings."
+        version: "Version %{version} du format inconnue."
+        empty: "Le fichier ne contient aucune définition."
+        count: "%{max} définitions au plus par fichier."
+        structure: "Champ %{field} mal formé."
+      legacy:
+        format: "Ce fichier n'est pas une définition de rapport exportée par l'application d'origine (en-tête RAPAV)."
+      formula:
+        empty: "La formule est vide."
+        too_long: "Formule trop longue (%{max} caractères au plus)."
+        depth: "Formule trop imbriquée (%{max} niveaux au plus)."
+        syntax: "Formule invalide au caractère %{position}."
+        function: "Fonction inconnue : %{name}."
+        arguments: "Nombre d'arguments incorrect pour %{name}."
+        round: "round : de 0 à %{max} décimales."
+        from: "Clause FROM invalide : %{value}."
+        account: "Référence de comptes invalide : %{value}."
+        card: "Référence de fiche invalide : %{value}."
+        analytic: "Référence analytique invalide : %{value}."
+        analytic_mode: "Avec « account= », un poste analytique n'admet que -s ou -S : %{value}."
+        option: "Option « %{name} » inconnue, répétée ou non admise ici : %{value}."
+        option_value: "Valeur de l'option « %{name} » invalide : %{value}."
+        comparison: "if : comparaison attendue (>, <, >=, <=, =, <>)."
+        line_ref: "Une ligne (%{code}) ne se cite pas ici."
+        column_ref: "Une colonne (@%{code}) ne se cite que dans une formule de colonne."
+        current_card: "La fiche courante ({*}, card=*) ne se cite que dans un listing."
+        reference_in_column: "Une formule de colonne ne cite que des colonnes (@CODE)."
+        line_unknown: "Ligne %{code} inconnue."
+        column_unknown: "Colonne %{code} inconnue."

@@ -1,0 +1,197 @@
+nl:
+  reports:
+    module:
+      name: "Geavanceerde rapporten en lijsten"
+    permissions:
+      read: "Rapporten en lijsten berekenen en exporteren, bewaarde aangiften en lijsten raadplegen"
+      design: "Rapporten en lijsten definiëren, kopiëren, importeren en exporteren; een aangifte of lijst bewaren"
+      admin: "Bewaarde aangiften en lijsten wissen; een definitie bij import vervangen"
+    menu:
+      reports_advanced: "Geavanceerde rapporten"
+      reports_listings: "Lijsten van fiches"
+      reports_archive: "Bewaarde aangiften en lijsten"
+      reports_sharing: "Rapporten en lijsten: delen"
+    columns:
+      default: "Bedrag"
+    copy_name: "%{name} (kopie)"
+    answers:
+      "yes": "Ja"
+      "no": "Nee"
+    export:
+      label: "Omschrijving"
+      card: "Fiche"
+      total: "Totaal"
+    line_kinds:
+      title: "Hoofdtitel"
+      heading1: "Titel"
+      heading2: "Ondertitel"
+      heading3: "Tussentitel"
+      text: "Tekst"
+      note: "Opmerking"
+      formula: "Formule"
+      accounts: "Lijst van rekeningen"
+      blank: "Lege regel"
+      account: "Rekening"
+    line_styles:
+      normal: "Normaal"
+      bold: "Subtotaal (vet)"
+      total: "Totaal"
+    column_kinds:
+      period: "Periode"
+      formula: "Formule op de kolommen"
+    spans:
+      period: "Gevraagde periode"
+      ytd: "Sinds het begin van het boekjaar"
+      year: "Volledig boekjaar"
+      opening: "Vóór de periode (opening)"
+      month: "Maand van de einddatum"
+    steps:
+      none: "Geen (één periode)"
+      week: "Per week"
+      fortnight: "Per twee weken"
+      month: "Per maand"
+      bimester: "Per twee maanden"
+      quarter: "Per kwartaal"
+      semester: "Per semester"
+      year: "Per jaar"
+    sources:
+      field: "Veld van de fiche"
+      attribute: "Kenmerk van de categorie"
+      formula: "Formule"
+    card_fields:
+      code: "Code (quick code)"
+      name: "Naam"
+      category: "Categorie"
+      kind: "Aard"
+      description: "Omschrijving"
+      vat_number: "Btw-nummer"
+      siren: "SIREN"
+      siret: "SIRET"
+      email: "E-mail"
+      phone: "Telefoon"
+      contact_name: "Contactpersoon"
+      address_line1: "Adres"
+      address_line2: "Adresaanvulling"
+      postcode: "Postcode"
+      city: "Gemeente"
+      country: "Land"
+      iban: "IBAN"
+      bic: "BIC"
+      enabled: "Actief"
+      sale_price: "Verkoopprijs"
+      purchase_price: "Aankoopprijs"
+    operators:
+      eq: "gelijk aan"
+      ne: "verschillend van"
+      lt: "kleiner dan"
+      le: "kleiner dan of gelijk aan"
+      gt: "groter dan"
+      ge: "groter dan of gelijk aan"
+      contains: "bevat"
+    snapshot_kinds:
+      declaration: "Aangifte"
+      listing: "Lijst"
+    formats:
+      csv: "CSV"
+      ods: "ODS (rekenblad)"
+      pdf: "PDF"
+    starters:
+      sig:
+        name: "Tussentijdse beheerssaldi (Frankrijk)"
+        description: "Handelsmarge, toegevoegde waarde, brutobedrijfsoverschot, bedrijfs-, financieel, uitzonderlijk en boekjaarresultaat; boekjaar, vorig boekjaar, verschil."
+      clients_ca:
+        name: "Klanten: omzet en saldo"
+        description: "Eén regel per actieve klant: gemeente, e-mail, omzet van de periode, saldo van de rekening; klanten zonder omzet weggelaten."
+    issues:
+      current_card: "De huidige fiche ({*}, card=*) heeft alleen zin in een lijst: bedrag nul."
+      scan_truncated: "Meer dan %{max} boekingen te lezen voor een verwijzing met tegenrekening of fiche: berekening afgekapt."
+      ledger_unknown: "Dagboek %{code} niet gevonden in dit dossier: genegeerd."
+      module_disabled: "De module %{code} is niet actief: haar bedragen zijn nul."
+      forbidden: "Recht %{permission} ontbreekt: de bedragen die het beschermt zijn nul."
+      analytic_unknown: "Analytische post %{code} niet gevonden: bedrag nul."
+      analytic_ambiguous: "Analytische post %{code} bestaat in meerdere plannen: vermeld „plan=”."
+      card_unknown: "Fiche %{code} niet gevonden: bedrag nul."
+      cycle: "Regel %{line} verwijst naar zichzelf, rechtstreeks of niet: bedrag nul."
+      formula_error: "Formule van %{line} niet berekenbaar (%{error}): bedrag nul."
+      category_unknown: "Categorie van fiches %{code} niet gevonden in dit dossier: lege lijst."
+      cards_truncated: "Meer dan %{max} fiches: lijst afgekapt."
+      legacy_line: "Regel „%{line}” niet omgezet (%{formula}): als opmerking overgenomen, na te kijken."
+      legacy_date_paid: "Regel „%{line}”: de filter op betaal- of vervaldatum wordt niet overgenomen (boekingsdatum)."
+      legacy_vat: "Regel „%{line}”: het totaal per btw-code wordt niet overgenomen (zie de btw-aangiften)."
+      legacy_reconciled: "Regel „%{line}”: het totaal van de afgepunte verrichtingen wordt niet overgenomen."
+    errors:
+      code:
+        invalid: "Code: een letter, dan letters, cijfers of „_”, hoogstens 20 tekens."
+        taken: "Deze code is al in gebruik."
+        duplicate: "Deze code komt twee keer voor."
+      name:
+        blank: "De naam is verplicht."
+        too_long: "De naam mag niet langer zijn dan %{max} tekens."
+      decimals:
+        range: "Het aantal decimalen gaat van 0 tot 2."
+      columns:
+        count: "Van 1 tot %{max} kolommen."
+      label:
+        blank: "De omschrijving is verplicht."
+        too_long: "De omschrijving mag niet langer zijn dan %{max} tekens."
+      choice:
+        invalid: "Ongeldige keuze."
+      shift:
+        range: "De verschuiving mag niet groter zijn dan %{max} maanden."
+      column:
+        order: "Kolom %{code} moet vóór deze worden gedefinieerd."
+        unknown: "Onbekende kolom %{code}."
+      lines:
+        count: "Van 1 tot %{max} regels."
+      indent:
+        range: "Het inspringen gaat van 0 tot 5."
+      accounts:
+        single: "Een lijst van rekeningen vermeldt slechts één verwijzing naar rekeningen, bijvoorbeeld [60%-s]."
+      line:
+        unknown: "Regel %{code} onbekend of zonder bedrag."
+        cycle: "De regels verwijzen in een kring naar elkaar."
+      attribute:
+        blank: "Sleutel van het kenmerk: kleine letters, cijfers of „_”."
+      conditions:
+        count: "Hoogstens %{max} voorwaarden."
+      run:
+        dates: "De begindatum ligt na de einddatum."
+      override:
+        unknown: "Herzien bedrag van een onbekende regel of kolom (%{line}, %{column})."
+      title:
+        blank: "De titel is verplicht."
+        too_long: "De titel mag niet langer zijn dan %{max} tekens."
+      keep:
+        none: "Vink minstens één fiche aan."
+      import:
+        too_large: "Bestand te groot (hoogstens %{max})."
+        json: "Dit bestand is geen geldige JSON."
+        format: "Dit bestand is geen bestand met definities van rapporten en lijsten."
+        version: "Onbekende versie %{version} van het formaat."
+        empty: "Het bestand bevat geen enkele definitie."
+        count: "Hoogstens %{max} definities per bestand."
+        structure: "Veld %{field} misvormd."
+      legacy:
+        format: "Dit bestand is geen rapportdefinitie uitgevoerd door de oorspronkelijke toepassing (RAPAV-hoofding)."
+      formula:
+        empty: "De formule is leeg."
+        too_long: "Formule te lang (hoogstens %{max} tekens)."
+        depth: "Formule te diep genest (hoogstens %{max} niveaus)."
+        syntax: "Ongeldige formule bij teken %{position}."
+        function: "Onbekende functie: %{name}."
+        arguments: "Verkeerd aantal argumenten voor %{name}."
+        round: "round: van 0 tot %{max} decimalen."
+        from: "Ongeldige FROM-clausule: %{value}."
+        account: "Ongeldige verwijzing naar rekeningen: %{value}."
+        card: "Ongeldige verwijzing naar een fiche: %{value}."
+        analytic: "Ongeldige analytische verwijzing: %{value}."
+        analytic_mode: "Met „account=” aanvaardt een analytische post alleen -s of -S: %{value}."
+        option: "Optie „%{name}” onbekend, herhaald of hier niet toegelaten: %{value}."
+        option_value: "Ongeldige waarde voor optie „%{name}”: %{value}."
+        comparison: "if: vergelijking verwacht (>, <, >=, <=, =, <>)."
+        line_ref: "Een regel (%{code}) kan hier niet worden vermeld."
+        column_ref: "Een kolom (@%{code}) wordt alleen in een kolomformule vermeld."
+        current_card: "De huidige fiche ({*}, card=*) wordt alleen in een lijst vermeld."
+        reference_in_column: "Een kolomformule vermeldt alleen kolommen (@CODE)."
+        line_unknown: "Onbekende regel %{code}."
+        column_unknown: "Onbekende kolom %{code}."

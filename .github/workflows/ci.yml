@@ -1,0 +1,80 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+#
+# CI de partiduo-reports (rapports avancés et listings, ADR-003) :
+# format, Ameba, specs sur PostgreSQL (cœur, interface et extension,
+# migrations comprises).
+name: CI
+
+on:
+  push:
+    branches: [development, production]
+  pull_request:
+  # Lancement manuel (onglet Actions ou `gh workflow run ci.yml`).
+  workflow_dispatch:
+
+env:
+  CRYSTAL_VERSION: "1.19.1"
+  SKIP_MARTEN_CLI_PRECOMPILATION: "1"
+
+jobs:
+  qualite:
+    name: Format, Ameba
+    runs-on: ubuntu-latest
+    container: crystallang/crystal:1.19.1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dépendances path (cœur, interface, shards maison)
+        run: scripts/ci-checkout-deps.sh
+      - name: Format
+        run: crystal tool format --check src ui spec config scripts manage.cr
+      - name: Aucune mention du logiciel d'origine hors documentation
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          if git grep -il 'noa[l]yss' -- . ':!*.adoc' ':!*.md'; then
+            echo "Mention du logiciel d'origine hors *.adoc/*.md" >&2
+            exit 1
+          fi
+      - name: Shards
+        run: shards install
+      - name: Ameba
+        run: mkdir -p bin && crystal build lib/ameba/bin/ameba.cr -o bin/ameba && bin/ameba
+
+  specs:
+    name: Specs
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_USER: partiduo
+          POSTGRES_PASSWORD: partiduo
+          POSTGRES_DB: partiduo_test
+        options: >-
+          --health-cmd "pg_isready -U partiduo"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # En CI seulement, PostgreSQL est un service joignable en TCP.
+      DATABASE_URL: postgres://partiduo:partiduo@localhost:5432/partiduo_test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Mémoire d'échange (la compilation des specs dépasse 6 Go)
+        run: |
+          sudo fallocate -l 12G /swap-ci && sudo chmod 600 /swap-ci
+          sudo mkswap /swap-ci && sudo swapon /swap-ci && free -h
+      - name: Index des paquets à jour (install-crystal installe sans le rafraîchir)
+        run: sudo apt-get update
+      - uses: crystal-lang/install-crystal@v1
+        with:
+          crystal: 1.19.1
+      - name: Bibliothèques de compilation
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libyaml-dev libssl-dev libgmp-dev libxml2-dev libpcre2-dev lld
+      - name: Dépendances path (cœur, interface, shards maison)
+        run: scripts/ci-checkout-deps.sh
+      - name: Shards
+        run: shards install
+      - name: Specs
+        run: crystal spec --order random --no-debug --threads 1 --link-flags=-fuse-ld=lld

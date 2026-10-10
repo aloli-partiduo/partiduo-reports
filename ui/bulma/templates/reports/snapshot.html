@@ -1,0 +1,23 @@
+{# SPDX-License-Identifier: AGPL-3.0-or-later. Déclaration ou listing conservé (D-REP-009) : copie figée, définition d'origine, auteur, exports, balises ou source de publipostage, inscription au suivi d'un listing. #}{% extend "ui/base.html" %}
+{% block title %}{{ title }}{% endblock title %}
+{% block scripts %}<link rel="stylesheet" href="{% asset 'reports/css/reports.css' %}">{% endblock scripts %}
+{% block crumbs %}{% include "ui/_crumbs.html" %}{% endblock crumbs %}
+{% block heading %}{{ title }}{% endblock heading %}
+{% block actions %}{% for action in actions %}{% include "ui/_action.html" %}{% endfor %}{% endblock actions %}
+{% block content %}
+<section class="pd-panel" aria-labelledby="rep-meta-title">
+  <header><h2 id="rep-meta-title">{{ kind_label }}</h2></header>
+  <div class="pd-body"><dl class="pd-dl pd-detail">
+    <dt>{% translate "reports_ui.archive.definition" %}</dt><dd>{{ definition }}</dd>
+    <dt>{% translate "reports_ui.archive.period" %}</dt><dd>{{ period }}</dd>
+    <dt>{% translate "reports_ui.archive.created" %}</dt><dd>{{ created }}</dd>
+    {% if description %}<dt>{% translate "reports_ui.reports.description" %}</dt><dd>{{ description }}</dd>{% endif %}
+  </dl></div>
+  <div class="pd-body rep-exports">{% for item in exports %}<a class="button is-small" href="{{ item.url }}" download>{% include "ui/_icon.html" with name="download" %}<span>{{ item.label }}</span></a>{% endfor %}{% if followup_url %}<a class="button is-small is-primary" href="{{ followup_url }}">{% include "ui/_icon.html" with name="kanban" %}<span>{% translate "reports_ui.followup.title" %}</span></a>{% endif %}</div>
+</section>
+<section class="pd-panel" aria-labelledby="rep-content-title">
+  <header><h2 id="rep-content-title">{% translate "reports_ui.archive.content" %}</h2></header>
+  {% if run_lines %}{% include "reports/_run.html" %}{% endif %}
+  {% if listing_columns %}{% include "reports/_listing.html" %}{% endif %}
+</section>
+{% endblock content %}

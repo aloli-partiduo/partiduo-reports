@@ -1,0 +1,24 @@
+{# SPDX-License-Identifier: AGPL-3.0-or-later. Calcul d'un rapport (D-REP-007, D-REP-008) : période et génération périodique (formulaire GET), avertissements, rapport mis en page, exports CSV, ODS, PDF et balises de publipostage, révision et conservation. #}{% extend "ui/base.html" %}
+{% block title %}{{ title }}{% endblock title %}
+{% block scripts %}<link rel="stylesheet" href="{% asset 'reports/css/reports.css' %}">{% endblock scripts %}
+{% block crumbs %}{% include "ui/_crumbs.html" %}{% endblock crumbs %}
+{% block heading %}{{ title }}{% endblock heading %}
+{% block actions %}{% for action in actions %}{% include "ui/_action.html" %}{% endfor %}{% endblock actions %}
+{% block content %}
+{% if intro %}<p class="pd-muted mb-3">{{ intro }}</p>{% endif %}
+<section class="pd-panel" aria-labelledby="rep-period-title">
+  <header><h2 id="rep-period-title">{% translate "reports_ui.run.period" %}</h2></header>
+  <div class="pd-body"><form method="get" action="{{ path }}" class="pd-inline-form" role="search" aria-labelledby="rep-period-title">
+    <label class="label" for="rep-from">{% translate "reports_ui.run.from" %}</label><input class="input" type="date" id="rep-from" name="from" value="{{ from }}">
+    <label class="label" for="rep-to">{% translate "reports_ui.run.to" %}</label><input class="input" type="date" id="rep-to" name="to" value="{{ to }}">
+    <label class="label" for="rep-step">{% translate "reports_ui.run.step" %}</label><div class="select"><select id="rep-step" name="step">{% for option in steps %}<option value="{{ option.value }}"{% if option.selected %} selected{% endif %}>{{ option.label }}</option>{% endfor %}</select></div>
+    <button class="button is-primary pd-touch" type="submit">{% translate "reports_ui.run.compute" %}</button>
+  </form></div>
+</section>
+{% if errors %}<div class="notification is-danger is-light pd-alert" role="alert">{% include "ui/_icon.html" with name="triangle-alert" %}<div>{% for message in errors %}<p>{{ message }}</p>{% endfor %}</div></div>{% endif %}
+{% if run_lines %}<section class="pd-panel" aria-labelledby="rep-result-title">
+  <header><h2 id="rep-result-title">{{ period }}</h2></header>
+  {% include "reports/_run.html" %}
+  <div class="pd-body rep-exports">{% for item in exports %}<a class="button is-small" href="{{ item.url }}" download>{% include "ui/_icon.html" with name="download" %}<span>{{ item.label }}</span></a>{% endfor %}{% if keep_url %}<a class="button is-small is-primary" href="{{ keep_url }}">{% include "ui/_icon.html" with name="library" %}<span>{% translate "reports_ui.keep.button" %}</span></a>{% endif %}</div>
+</section>{% endif %}
+{% endblock content %}

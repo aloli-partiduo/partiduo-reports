@@ -1,0 +1,88 @@
+/* SPDX-License-Identifier: AGPL-3.0-or-later */
+/* Écrans des rapports avancés et des listings : propriétés logiques et
+   jetons du thème seulement (ADR-005 D7). */
+.rep-run th.rep-label {
+  font-weight: 400;
+}
+
+.rep-title th.rep-label {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.rep-heading1 th.rep-label,
+.rep-bold th.rep-label,
+.rep-bold td {
+  font-weight: 700;
+}
+
+.rep-heading2 th.rep-label {
+  font-weight: 600;
+  color: var(--pd-ink);
+}
+
+.rep-heading3 th.rep-label,
+.rep-text th.rep-label {
+  font-style: italic;
+}
+
+.rep-note th.rep-label {
+  color: var(--pd-warn);
+}
+
+.rep-total th.rep-label,
+.rep-total td {
+  font-weight: 700;
+  border-block-start: 2px solid var(--pd-rule);
+}
+
+.rep-account th.rep-label {
+  color: var(--pd-muted);
+}
+
+.rep-indent-1 th.rep-label { padding-inline-start: 1.5rem; }
+.rep-indent-2 th.rep-label { padding-inline-start: 2.5rem; }
+.rep-indent-3 th.rep-label { padding-inline-start: 3.5rem; }
+.rep-indent-4 th.rep-label { padding-inline-start: 4.5rem; }
+.rep-indent-5 th.rep-label { padding-inline-start: 5.5rem; }
+
+.rep-revised {
+  background: var(--pd-warn-bg);
+}
+
+.rep-period {
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+
+.rep-editor input.input,
+.rep-editor .select select {
+  min-inline-size: 4rem;
+}
+
+.rep-editor .rep-formula {
+  min-inline-size: 16rem;
+}
+
+.rep-editor td {
+  vertical-align: top;
+}
+
+.rep-help code {
+  white-space: nowrap;
+}
+
+.rep-check:empty {
+  display: none;
+}
+
+.rep-amount-input {
+  max-inline-size: 9rem;
+  text-align: end;
+}
+
+.rep-exports {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

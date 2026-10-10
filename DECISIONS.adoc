@@ -1,0 +1,433 @@
+= partiduo-reports — décisions
+:toc: left
+:toc-title: Table des matières
+:icons: font
+
+Décisions prises pendant le portage de l'extension `REPORTS`, quand un
+point n'était pas tranché par les ADR (contexte, choix, alternative
+écartée), puis amendements proposés au contrat du cœur et des extensions.
+Les ADR ne sont jamais modifiés : un écart ou un complément y est proposé
+ici.
+
+Spécification : ADR-003 (contrat d'extension, D6 surface publique, D7
+événements ; sort des extensions amont : `noalyss-plugins` / RAPAV +
+LISTING, 14 700 lignes → `partiduo-reports`), ADR-005 (interface), ADR-006
+(Comptabilité), ADR-010 (modèles de documents, `partiduo-modeles`), ADR-011
+A1 et A3 (incompatibilités, dossier foyer). Source fonctionnelle : les
+greffons « Rapport avancé » (RAPAV) et « Listing » de NOALYSS
+(`noalyss-plugins/rapport_avance`, `noalyss-plugins/listing`, la source
+*legacy*), dont on porte les fonctions et non le code.
+
+== Décisions
+
+=== D-REP-001 — Une extension sur la Comptabilité, par le seul contrat (10 octobre 2026)
+
+*Choix.* Extension `REPORTS`, `depends_on "ACCOUNTING"`,
+`requires_core "~> 0.1"`, version lue dans `shard.yml`. Elle ne lit aucune
+table d'un autre module : les montants viennent de
+`Partiduo::Api::Accounting` (balance générale, balance des tiers,
+écritures), `Partiduo::Api::Analytic` (balance analytique, tableau postes ×
+comptes), `Partiduo::Api::Cards` (fiches, catégories),
+`Partiduo::Api::Followup` (actions), `Partiduo::Api::Core` (exercices,
+réglages, PDF neutre). Elle n'écrit que ses tables `reports_*` et, à la
+demande, des actions de suivi par le contrat. Contrat public
+`Reports::Api` (`doc/api/reports.adoc`), même plan qu'une application du
+cœur et que `partiduo-amortis`.
+
+Le code `REPORTS` est aussi celui de l'entrée de menu « Éditions » du cœur ;
+les deux espaces de noms sont distincts (registre des pièces, codes de
+menu) et l'extension range ses entrées *sous* cette rubrique
+(`REPORTS_ADVANCED`, `REPORTS_LISTINGS`, `REPORTS_ARCHIVE`), le partage sous
+« Paramètres » (`REPORTS_SHARING`).
+
+=== D-REP-002 — Inventaire : porté, adapté, refusé (10 octobre 2026)
+
+[cols="3,1,5",options="header"]
+|===
+|Fonction de la source legacy |Sort |Dans REPORTS
+
+|Formulaires (rapports) : liste, création, modification, suppression
+|Porté
+|Rapports avancés, code unique, copie (D-REP-005).
+
+|Lignes : titres de trois niveaux, titre principal, texte, remarque, formule, liste de postes
+|Porté
+|Neuf sortes de lignes, styles, retraits, signe inversé, lignes masquées.
+
+|Titre principal = saut de page dans le PDF
+|Adapté
+|Titre en tête de rapport ; pas de saut de page (le PDF du socle n'en a pas, A-REP-4).
+
+|Formule comptable (comptes, fiches, analytique, `-d -c -s -S`, sans suffixe = valeur absolue)
+|Porté
+|Langage sûr (D-REP-004), même syntaxe, sans `eval`.
+
+|Formule « Compute » sur codes de lignes, ternaire `a > b ? x : y`
+|Adapté
+|`$CODE` résolu à la demande, boucles refusées ; `if(a > b, x, y)`.
+
+|Poste comptable avec contrepartie (type 4)
+|Adapté
+|Option `with=` d'une référence de comptes, lue dans les écritures (D-REP-006).
+
+|Poste et code de TVA, base ou TVA (type 2)
+|Refusé
+|Pas de lecture par code de TVA au contrat ; les déclarations de TVA du cœur le font (A-REP-5).
+
+|Opérations rapprochées (type 5), date de paiement ou d'échéance
+|Refusé
+|Pas de critère de date de paiement au contrat (A-REP-6) ; avertissement à l'import.
+
+|Filtre par journal
+|Porté
+|`ledger=` (codes, portables) et `ledger_kind=` ; le legacy n'exportait pas le journal.
+
+|Périodes : dates saisies, N, N-1, N-2, N-3 (exercices entiers), depuis le début d'exercice
+|Adapté
+|Colonnes de période et options `span=` / `shift=` (D-REP-007).
+
+|Génération périodique (7 jours à 1 an)
+|Adapté
+|Une colonne par tranche ; dernière tranche incomplète gardée (D-REP-008).
+
+|Déclaration calculée, montants modifiables, sauvegarde, historique, purge des non sauvées (5 h)
+|Adapté
+|Révision puis conservation d'une copie figée ; rien n'est stocké sans conservation, donc pas de purge (D-REP-009).
+
+|Exports CSV et PDF
+|Porté
+|CSV, ODS et PDF/A-2b par le socle (D-REP-013).
+
+|Document généré depuis un modèle ODT/RTF (balises `<<CODE>>`, balises spéciales), PDF par LibreOffice
+|Adapté
+|CSV des balises (mêmes noms) comme source de publipostage ; le rendu de modèle relève de `partiduo-modeles` (A-REP-1).
+
+|Export et import de définition (`.bin`)
+|Porté
+|Format JSON documenté (D-REP-014) et import du `.bin` legacy (D-REP-015).
+
+|Dépôt de rapports téléchargeables (internet)
+|Adapté
+|Définitions fournies avec l'extension, sans téléchargement (D-REP-016).
+
+|Listings : catégorie de fiches, colonnes (attribut, formule, solde de poste ou de fiche, Compute), clonage
+|Porté
+|Listings (D-REP-011) : champs, attributs, formules sur la fiche courante, `$CODE` ; copie avec les conditions.
+
+|Conditions de filtrage (`= <= >= <>`)
+|Porté
+|Sept opérateurs, toutes ensemble (D-REP-012).
+
+|Fiches inactives toujours incluses
+|Adapté
+|Option « inclure les fiches désactivées » (exclues par défaut).
+
+|Filtre payées / non payées d'un listing
+|Refusé
+|Même raison que la date de paiement (A-REP-6).
+
+|Sélection des fiches, conservation, export CSV (en-tête des codes)
+|Porté
+|Fiches cochées conservées ; CSV de publipostage (en-tête des codes).
+
+|Publipostage : un document par fiche, balises d'historique, PDF, archive ZIP
+|Refusé
+|Moteur de modèles hors de l'extension (A-REP-1) ; la source CSV alimente le publipostage d'un traitement de texte.
+
+|Envoi par courriel des documents
+|Refusé
+|Aucun envoi par une extension sans contrat de messagerie (A-REP-2).
+
+|Inscription au suivi (une action par fiche)
+|Porté
+|Par `Partiduo::Api::Followup.create_action`, avec les droits de l'acteur.
+
+|Droits : aucun contrôle propre, suppressions sans contrôle, `eval`, SQL concaténé
+|Refusé
+|Trois permissions, contrat d'abord, aucun SQL fourni par l'utilisateur (D-REP-004, D-REP-018).
+|===
+
+=== D-REP-003 — Utile à un dossier foyer : aucune incompatibilité (10 octobre 2026)
+
+*Contexte.* `partiduo-amortis` déclare `incompatible_with "PERSO"` (un foyer
+n'amortit rien) ; `partiduo-sepa` ne le fait pas. ADR-011 donne au foyer
+la Comptabilité, des catégories de recettes et de dépenses et des contacts.
+
+*Choix.* Aucune incompatibilité, aucun refus dans un dossier `household`.
+Un foyer tire profit d'un rapport sur ses catégories (dépenses par poste,
+année contre année précédente, par mois) et d'un listing de ses contacts.
+Rien dans l'extension ne suppose une entreprise : les définitions
+fournies d'entreprise (SIG) s'installent à la demande et se calculent sur
+le plan du dossier. La variante simplifiée du foyer (`PartiduoUi::SimpleMode`)
+décide seule de son menu.
+
+*Alternative écartée.* `incompatible_with "PERSO"` : priverait les foyers
+d'un outil d'analyse sans raison métier.
+
+=== D-REP-004 — Langage de formule sûr (10 octobre 2026)
+
+*Contexte.* La source legacy remplaçait chaque référence par un montant
+calculé en SQL concaténé, puis évaluait la formule par `eval` PHP, protégé
+par des expressions régulières fragiles. Le cœur a déjà un analyseur pour
+ses rapports personnalisés (`Partiduo::Accounting::Formula`), interne : une
+extension ne peut pas l'appeler.
+
+*Choix.* Analyseur descendant récursif écrit pour l'extension
+(`Reports::Formula`), même syntaxe que le cœur et la source legacy, étendue
+(référence : `doc/formules.adoc`) :
+
+* références `[606%]`, `[606]`, `{QCODE}`, `{*}`, `{{POSTE}}`, suffixes
+  `-d -c -s -S -D -C` ; sans suffixe, la valeur absolue du solde, comme
+  partout ailleurs (une définition reprise garde son sens) ;
+* options dans la référence (`; ledger=V01; span=ytd; shift=-1;
+  except=603; with=41; card=*; account=411; plan=Projets`) ;
+* `$CODE` (ligne), `@CODE` (colonne), fonctions `abs round min max pos neg
+  pct if`, comparaisons dans `if` seulement ;
+* `FROM=MM.AAAA` admis (compatibilité avec les rapports du cœur).
+
+L'arbre est calculé en `BigDecimal` ; une division par zéro vaut zéro ;
+longueur (2 000) et profondeur (50) bornées ; aucun nom, aucune valeur ne
+passe dans du SQL : les montants viennent du contrat. Une formule invalide
+est refusée à l'enregistrement, champ par champ, et contrôlée à la saisie
+(HTMX).
+
+*Alternative écartée.* Proposer au cœur d'exposer son analyseur : son
+langage n'a ni options, ni lignes, ni colonnes ; l'extension en aurait
+dépendu sans pouvoir l'étendre.
+
+=== D-REP-005 — Définition d'un rapport (10 octobre 2026)
+
+*Choix.* Table `reports_report` (code unique sans casse, nom, description,
+décimales de 0 à 2), `reports_report_column`, `reports_report_line`,
+remplacées en bloc à chaque enregistrement. Sortes de lignes : `title`,
+`heading1` à `heading3`, `text`, `note`, `formula`, `accounts` (une ligne
+par compte, soldes nuls omis), `blank` ; styles `normal`, `bold`
+(sous-total), `total` ; retrait de 0 à 5 ; signe inversé à l'affichage
+(les formules de colonnes suivent le signe affiché) ; ligne masquée
+(calcul intermédiaire). Codes de lignes et de colonnes : une lettre puis
+lettres, chiffres, `_` (20 au plus), uniques dans le rapport ; une ligne
+ne cite que des lignes à montant, sans boucle. Contrôles doublés en base
+(sortes, styles, étendues, retrait, unicité).
+
+=== D-REP-006 — Sources des montants, droits du lecteur (10 octobre 2026)
+
+*Choix.* Les montants sont lus *avec l'acteur* : un rapport ne montre que
+les journaux qu'il voit, et une source refusée (droit manquant, module
+inactif) vaut zéro et laisse un avertissement (`issues`) au lieu d'arrêter
+le calcul. Comptes : une `trial_balance` par période et jeu de journaux ;
+fiches : une `auxiliary_balance` par nature, période et compte ;
+analytique : `Analytic.balance`, ou `Analytic.table` avec `account=`.
+`with=` (contrepartie) et `card=` (fiche de l'écriture, « chiffre
+d'affaires par client ») lisent les écritures (`Accounting.entries`), page
+par page, 20 000 au plus par référence et période (avertissement
+au-delà ; amendement proposé A-REP-3). Chaque lecture est gardée le temps
+d'un calcul. Les journaux, fiches et postes introuvables dans le dossier
+valent zéro avec un avertissement : une définition reste portable.
+
+=== D-REP-007 — Périodes (10 octobre 2026)
+
+*Choix.* La période demandée vaut par défaut du début de l'exercice à la
+date du jour. Une colonne de période la *décale* (`shift_months`, saisi
+`-1` pour un an, `-3m` pour trois mois) puis l'*étend* (`span`) : `period`,
+`ytd` (début de l'exercice de la date de fin), `year` (exercice entier),
+`opening` (du début de l'exercice à la veille de la période), `month`. Une
+référence peut ajouter son décalage et imposer son étendue. Les exercices
+sont ceux du socle ; à défaut, l'année civile.
+
+Correspondance avec la source legacy : « N-1 » y désignait *l'exercice
+entier* précédent, pas la même période décalée ; l'import le traduit en
+`span=year; shift=-1` (D-REP-015). Les étendues se rapportent à la date de
+fin, non à celle de début.
+
+=== D-REP-008 — Génération périodique (10 octobre 2026)
+
+*Choix.* Pas `week`, `fortnight`, `month`, `bimester`, `quarter`,
+`semester`, `year` : une colonne par tranche depuis la date de début (120
+au plus), les colonnes de formule écartées. La dernière tranche
+incomplète est gardée, arrêtée à la date de fin (la source legacy
+l'ignorait). Les montants révisés s'appliquent aux lignes ; les titres
+restent affichés.
+
+=== D-REP-009 — Déclarations et listings conservés (10 octobre 2026)
+
+*Choix.* Un calcul n'est stocké que s'il est conservé (table
+`reports_snapshot`, `kind` `declaration` ou `listing`) : copie figée en
+JSON (montants en texte décimal), que la modification ou la suppression
+de la définition n'altère pas. Avant de conserver une déclaration, ses
+montants se révisent ; les lignes qui citent un montant révisé sont
+recalculées (la source legacy ne les reportait pas). Pas de purge : rien
+n'est stocké sans conservation. Effacer exige `reports.admin`.
+
+=== D-REP-010 — Documents générés depuis un modèle : par `partiduo-modeles`, plus tard (10 octobre 2026)
+
+*Contexte.* La source legacy remplissait un modèle OpenDocument ou RTF
+(`<<CODE>>`, balises du dossier et de la période) et le convertissait en
+PDF. `partiduo-modeles` (ADR-010) porte le moteur de modèles multiformats
+de Partiduo, mais son contrat ne rend qu'un *document de la Facturation*
+(`Modeles::Api.render(actor, document_id, …)`), avec son vocabulaire, et
+l'extension dépend d'`INVOICING`.
+
+*Choix.* Pas de second moteur ici. L'extension fournit la *source de
+données* du publipostage : CSV des balises d'une déclaration (`CODE`,
+`CODE_COL`, `TITRE`, `NOTE`, `PERIODE_DECLARATION`, `START_DATE`,
+`END_DATE`, `TODAY`, `INTERVAL_*`, `NAME`, `ENTITY_ID`, `SIREN`, `STREET`,
+`NUMBER`, `CEDEX`, `LOCALITE`, `COUNTRY`, `PHONE`), et d'un listing (une
+ligne par fiche, en-tête des codes). Un traitement de texte s'en sert
+pour le publipostage. Amendement proposé A-REP-1.
+
+=== D-REP-011 — Listings de fiches (10 octobre 2026)
+
+*Choix.* Tables `reports_listing`, `reports_listing_column`,
+`reports_listing_condition`. Fiches choisies par *code* de catégorie
+(portable d'un dossier à l'autre) ou par nature ; désactivées exclues sauf
+demande. Colonne : champ de la fiche (code, nom, catégorie, nature,
+description, TVA, SIREN, SIRET, courriel, téléphone, contact, adresse,
+IBAN, BIC, active, prix), attribut libre de la catégorie (clé), ou formule
+où `{*}` et `card=*` désignent la fiche de la ligne et `$CODE` une autre
+colonne de la même fiche (le « Compute » legacy). Tri par une colonne,
+totaux des montants. 10 000 fiches au plus (avertissement).
+
+=== D-REP-012 — Conditions, publipostage, suivi (10 octobre 2026)
+
+*Choix.* Conditions `eq ne lt le gt ge contains`, toutes ensemble :
+montants comparés en nombres, textes sans casse (en nombres si les deux
+en sont). Un listing calculé se conserve réduit aux fiches cochées ; son
+CSV de publipostage a pour en-tête `QUICKCODE`, `NAME` puis les codes des
+colonnes. L'inscription au suivi crée une action par fiche (type, date,
+titre, rappel, commentaire, profil) par `Followup.create_action`, tout ou
+rien. Ni document par fiche (A-REP-1), ni courriel (A-REP-2), ni balises
+d'historique d'opérations.
+
+=== D-REP-013 — Exports CSV, ODS et PDF (10 octobre 2026)
+
+*Choix.* CSV : `;`, UTF-8 avec BOM, montants au point décimal arrondis aux
+décimales du rapport, texte protégé contre les formules de tableur. ODS :
+écrit à la main (archive ZIP, `mimetype` non compressé en tête, montants
+typés, titres et totaux en gras), sans dépendance. PDF/A-2b : par
+`Partiduo::Api::Core.table_pdf`, styles (titre, sous-total, total) et
+retraits conservés, montants mis en forme selon la langue. XLSX n'est pas
+produit : ODS s'ouvre dans tous les tableurs courants et CSV reste
+universel.
+
+=== D-REP-014 — Partage des définitions entre dossiers (10 octobre 2026)
+
+*Choix.* Format JSON `partiduo-reports`, version 1
+(`doc/format-definitions.adoc`) : rapports et listings d'un même fichier ;
+journaux, catégories, fiches, postes cités par leur code, jamais par un
+identifiant interne. Import tout ou rien : une définition invalide refuse
+le fichier, erreurs sous `reports[<i>].<champ>`. Un code déjà pris est
+ignoré, ou remplacé à la demande (`reports.admin`). 2 Mo et 200
+définitions au plus. Une définition qui cite un journal ou une fiche
+absente s'importe : l'absence est signalée au calcul.
+
+=== D-REP-015 — Import des définitions de la source legacy (10 octobre 2026)
+
+*Choix.* Le fichier `.bin` (CSV `;`, en-tête `RAPAV;<format>`, lignes, mot
+`RAPAV_DETAIL`, détails) se convertit en rapport : sortes de lignes
+reprises, codes rendus valides et uniques (les formules « Compute » qui
+les citent suivent), détails d'une ligne additionnés, ancienne syntaxe
+`[70%s]` → `[70%-s]`, ternaire simple → `if`, poste et contrepartie →
+`[6%-s; with=41]`, période → `span`/`shift`. Les détails sans équivalent
+(TVA par code, rapprochement) et les formules illisibles deviennent une
+*remarque* qui cite la formule d'origine, avec un avertissement ; le
+critère de date de paiement ou d'échéance est signalé. Le code prend un
+suffixe s'il est déjà pris.
+
+=== D-REP-016 — Définitions fournies (10 octobre 2026)
+
+*Choix.* Le dépôt de rapports téléchargeables de la source legacy
+(téléchargement depuis internet) est remplacé par des définitions
+livrées dans le shard (`src/reports/starters/*.json`, au format de
+partage) : soldes intermédiaires de gestion du PCG (exercice, précédent,
+variation, %) et listing des clients (chiffre d'affaires par
+`[70%-S; card=*]`, solde). Elles s'installent comme un import, puis se
+modifient librement.
+
+=== D-REP-017 — Interface : HTMX, sans Opal (10 octobre 2026)
+
+*Choix.* L'éditeur d'un rapport est un formulaire : lignes et colonnes en
+tableau de champs (position, sorte, code, libellé, formule, style,
+retrait, options, suppression) ; ajout de ligne (`hx-get` d'un fragment,
+compteur mis à jour hors bande), contrôle de chaque formule au
+changement (`hx-post`), aperçu sur une période (`hx-post` du formulaire
+entier). Sans JavaScript, des lignes libres et l'enregistrement suffisent.
+Le glisser-déposer qui aurait justifié Opal n'apporte pas assez face à
+la position numérique : *Opal n'est pas employé dans cette version*.
+Calcul, révision (montants modifiables), listing à cocher, archive,
+partage (dépôt de fichier) : HTMX et formulaires.
+
+=== D-REP-018 — Droits (10 octobre 2026)
+
+*Choix.* `reports.read` (calculer, exporter, consulter ce qui est
+conservé), `reports.design` (définir, copier, supprimer une définition,
+importer, exporter, installer, conserver, inscrire au suivi),
+`reports.admin` (effacer ce qui est conservé, remplacer à l'import). Le
+contrat du cœur exige ses propres droits avec l'acteur réel :
+`accounting.report.read`, `accounting.entry.read` (`with=`, `card=`),
+`accounting.ledger.read` (journaux par code), `cards.card.read`,
+`analytic.plan.read` et `analytic.report.read`, `followup.action.write`,
+`accounting.report.read` encore pour reprendre un rapport du cœur.
+
+=== D-REP-019 — Ce qui est réutilisé, pas refait (10 octobre 2026)
+
+*Choix.* Les éditions du cœur (balances, grand livre, bilan, compte de
+résultat, FEC), ses rapports personnalisés et ses prévisions budgétaires
+(estimé et réel) restent où ils sont ; l'analytique garde ses éditions.
+L'extension *lit* leurs agrégats par le contrat, *reprend* un rapport
+personnalisé du cœur (même syntaxe) et produit ses PDF par le service
+neutre du socle. Pas de colonne « budget » : les prévisions du cœur
+comparent déjà estimé et réel.
+
+=== D-REP-020 — Aucun événement (10 octobre 2026)
+
+*Choix.* Aucun abonnement, aucun événement publié ni demandé : un
+rapport se calcule à la demande, une déclaration conservée est une copie
+figée qui n'a pas à suivre les écritures.
+
+== Amendements proposés
+
+À soumettre à l'utilisateur ; l'extension les contourne sans modifier
+`partiduo-app` ni `partiduo-modeles`.
+
+A-REP-1 — Rendu de modèle à partir de données libres (`partiduo-modeles`, ADR-010)::
+  `Modeles::Api.render_data(actor, template_id, kind, values : Hash(String, String), rows : Array(Hash(String, String)), pdf : Bool)`
+  avec des sortes de modèles déclarées par l'extension appelante
+  (`report`, `listing`) et leur vocabulaire (`Modeles::Api.register_vocabulary`),
+  et une dépendance d'`INVOICING` ramenée au seul rendu des documents de
+  facturation (ou le moteur de fusion déplacé dans le socle). Il rendrait
+  la déclaration générée et le publipostage par fiche de la source legacy.
+  Contournement : CSV des balises et source de publipostage (D-REP-010,
+  D-REP-012).
+
+A-REP-2 — Envoi de courriels par une extension (socle)::
+  `Partiduo::Api::Mail.deliver(actor, MessageInput)` (destinataire,
+  sujet, corps, pièces jointes, expéditeur imposé par le dossier), envoyé
+  après validation (`Events.after_commit`) et journalisé, pour envoyer les
+  documents d'un listing. Contournement : aucun envoi ; publipostage et
+  inscription au suivi.
+
+A-REP-3 — Sommes de lignes d'écritures par critère (Comptabilité)::
+  `Partiduo::Api::Accounting.line_sums(actor, LineSumQuery(account, account_prefix, counterpart_prefix, card, ledger_ids, date_from, date_to))`
+  calculé en SQL par le cœur, par compte : contrepartie et « chiffre
+  d'affaires par fiche » sans relire les écritures. Contournement : lecture
+  paginée par `entries`, 20 000 écritures au plus par référence et période
+  (D-REP-006).
+
+A-REP-4 — PDF neutre : saut de page et niveaux de titre (socle)::
+  Style de ligne `page_break` et niveau de titre (`heading` 1 à 3) dans
+  `Partiduo::Api::Core::TableRowInput`. Contournement : titres en gras sans
+  saut de page.
+
+A-REP-5 — Totaux par code de TVA (Comptabilité)::
+  `Accounting.vat_totals(actor, query)` : base et TVA par taux, compte,
+  type de journal et période, pour le détail « poste et code de TVA » de la
+  source legacy. Contournement : refusé ici ; les déclarations de TVA du
+  cœur portent ces totaux.
+
+A-REP-6 — Critère de date de paiement ou d'échéance (Comptabilité)::
+  `date_basis` (`operation`, `payment`, `due`) et filtre « payé / non
+  payé » dans `TrialBalanceQuery` et `EntryQuery`, pour les détails
+  « opérations rapprochées » et la TVA sur les encaissements. Contournement :
+  refusé ici, avertissement à l'import legacy.
+
+Aucun nouvel événement n'est demandé à ADR-003 D7.

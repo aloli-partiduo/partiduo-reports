@@ -1,0 +1,28 @@
+{
+  "format": "partiduo-reports",
+  "version": 1,
+  "generator": "partiduo-reports",
+  "reports": [],
+  "listings": [
+    {
+      "code": "CLIENTS_CA",
+      "name": "Clients : chiffre d'affaires et solde",
+      "description": "Une ligne par client : coordonnées, chiffre d'affaires hors taxes de la période (ventes dans les écritures où le client paraît), solde de son compte en fin de période.",
+      "category_code": "",
+      "card_kind": "customer",
+      "include_disabled": false,
+      "sort_code": "CA",
+      "sort_desc": true,
+      "columns": [
+        {"code": "NOM", "label": "Nom", "source": "field", "field_name": "name"},
+        {"code": "VILLE", "label": "Ville", "source": "field", "field_name": "city"},
+        {"code": "EMAIL", "label": "Courriel", "source": "field", "field_name": "email"},
+        {"code": "CA", "label": "Chiffre d'affaires", "source": "formula", "formula": "[70%-S; card=*]"},
+        {"code": "SOLDE", "label": "Solde", "source": "formula", "formula": "{*-s; span=ytd}"}
+      ],
+      "conditions": [
+        {"column_code": "CA", "operator": "ne", "value": "0"}
+      ]
+    }
+  ]
+}
