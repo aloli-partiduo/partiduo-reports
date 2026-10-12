@@ -97,6 +97,34 @@ L'extension exige la Comptabilité (`depends_on "ACCOUNTING"`) ; elle
 s'active par dossier (`Partiduo::Api::Modules.activate`, écran
 « Modules »), y compris dans un dossier foyer.
 
+== Développement local
+
+`shard.yml` et `shard.lock` référencent les shards maison sur GitHub
+(`aloli-crystal/*` et `aloli-partiduo/*`), suivis par branche. Le verrou
+versionné ne contient aucune dépendance `path:` : les ports FreeBSD et la CI
+l'exigent.
+
+Pour travailler sur les copies de travail voisines (`../../prod-crystal/<nom>`
+et `../partiduo-<dépôt>`), lancer :
+
+[source,sh]
+----
+scripts/override-local.sh
+----
+
+Le script génère un `shard.override.yml` *local et non versionné* (ignoré par
+git), installe les shards, puis remet `shard.lock` à son état versionné.
+Une copie de travail absente reste prise sur GitHub.
+
+Pour régénérer le verrou versionné, supprimer d'abord l'override local :
+
+[source,sh]
+----
+rm -f shard.override.yml
+SKIP_MARTEN_CLI_PRECOMPILATION=1 shards update
+scripts/override-local.sh   # retour au mode local
+----
+
 == Commandes
 
 [source,sh]
