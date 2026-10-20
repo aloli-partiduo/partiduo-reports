@@ -26,6 +26,8 @@ require "../lib/partiduo-ui-bulma/spec/support/accounts"
 require "../lib/partiduo-ui-bulma/spec/support/browser"
 require "../lib/partiduo-ui-bulma/spec/support/reference"
 require "../lib/partiduo-ui-bulma/spec/support/books"
+# Contrôle des traductions (fichiers de locales, clés citées, pages rendues).
+require "../lib/partiduo-ui-bulma/spec/support/translations"
 
 require "./support/**"
 
