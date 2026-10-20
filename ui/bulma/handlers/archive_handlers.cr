@@ -38,7 +38,9 @@ module Reports
     end
 
     # Une déclaration ou un listing conservé : contenu figé, exports,
-    # balises ou source de publipostage, inscription au suivi, effacement.
+    # documents générés depuis un modèle (D-REP-021), envoi par courriel
+    # des documents d'un listing (D-REP-027), inscription au suivi,
+    # effacement.
     class SnapshotHandler < Handler
       def get
         id = id_param
@@ -49,11 +51,14 @@ module Reports
         back = Ui.url("snapshot", id: id)
         case query("format")
         when "csv", "ods", "pdf" then return file_or_back(Api.declaration_file(actor, id, query("format")), back)
-        when "tags"              then return file_or_back(Api.declaration_tags_file(actor, id), back)
+        when "document"
+          template, pdf = document_choice
+          return file_or_back(Api.declaration_document(actor, id, template, pdf), back)
         end
         view = Api.declaration(actor, id)
         context = RunPresenter.context(view.run, fmt)
-        context.merge!(common(view.summary, %w[csv ods pdf tags]))
+        context.merge!(common(view.summary, %w[csv ods pdf]))
+        context.merge!(document_form(Api::DOCUMENT_KINDS[0], {} of String => String))
         page("reports/snapshot.html", context)
       end
 
@@ -62,11 +67,18 @@ module Reports
         case query("format")
         when "csv", "ods", "pdf" then return file_or_back(Api.listing_snapshot_file(actor, id, query("format")), back)
         when "merge"             then return file_or_back(Api.listing_snapshot_file(actor, id, "csv", merge: true), back)
+        when "document"
+          template, pdf = document_choice
+          return file_or_back(Api.listing_document(actor, id, template, pdf, query("per_card") != "0"), back)
         end
         view = Api.listing_snapshot(actor, id)
         context = ListingPresenter.context(view.result, fmt, selectable: false)
         context.merge!(common(view.summary, %w[csv ods pdf merge]))
         context["followup_url"] = Ui.url("snapshot_followup", id: id) if can_design?
+        context.merge!(document_form(Api::DOCUMENT_KINDS[1], {} of String => String, per_card: true))
+        if can_design? && context.has_key?("document_templates") && Partiduo::Api::Mail.configured?(actor)
+          context["mail_url"] = Ui.url("snapshot_mail", id: id)
+        end
         page("reports/snapshot.html", context)
       end
 
@@ -85,8 +97,29 @@ module Reports
           "definition"  => "#{summary.definition_code} · #{summary.definition_name}",
           "created"     => I18n.t("reports_ui.archive.created_by", date: fmt.datetime(summary.created_at), name: summary.created_by.presence || "—"),
           "description" => summary.description.presence,
+          "path"        => back,
           "exports"     => formats.map { |format| Ui.row({"url" => "#{back}?format=#{format}", "label" => I18n.t("reports_ui.exports.#{format}")}) },
         } of String => Ui::Value
+      end
+    end
+
+    # Envoi par courriel des documents d'un listing conservé (D-REP-027).
+    class SnapshotMailHandler < Handler
+      def get
+        go(Ui.url("snapshot", id: id_param))
+      end
+
+      def post
+        id = id_param
+        input = Api::MailInput.new(subject: field("subject"), body: field("body"), template_id: field("template").to_i64?,
+          pdf: field("pdf") == "1")
+        result = Api.mail_listing(actor, id, input)
+        if sent = result.value?
+          flash["success"] = I18n.t("reports_ui.mail.sent", number: sent.sent, skipped: sent.skipped.empty? ? "—" : sent.skipped.join(", "))
+        else
+          flash["danger"] = messages(result)
+        end
+        go(Ui.url("snapshot", id: id))
       end
     end
 

@@ -116,10 +116,85 @@ fr:
       category_unknown: "Catégorie de fiches %{code} introuvable dans ce dossier : listing vide."
       cards_truncated: "Plus de %{max} fiches : listing tronqué."
       legacy_line: "Ligne « %{line} » non convertie (%{formula}) : reprise en remarque, à revoir."
-      legacy_date_paid: "Ligne « %{line} » : le filtre par date de paiement ou d'échéance n'est pas repris (date de l'écriture)."
-      legacy_vat: "Ligne « %{line} » : le total par code de TVA n'est pas repris (voir les déclarations de TVA)."
-      legacy_reconciled: "Ligne « %{line} » : le total des opérations rapprochées n'est pas repris."
+      legacy_vat: "Ligne « %{line} » : le code de TVA de la source legacy ne se transpose pas d'un dossier à l'autre : détail non repris, à réécrire avec vat=CODE (voir les codes de TVA du dossier)."
+      legacy_reconciled: "Ligne « %{line} » : les opérations rapprochées sont reprises à leur date de paiement (lettrage), à vérifier."
+      paid_card: "Le filtre payé / non payé ne s'applique pas à une fiche ({…}) : utilisez une référence de comptes avec card= (par exemple [411%-s; card=*])."
+    modeles:
+      kinds:
+        report: "Déclaration d'un rapport"
+        listing: "Document d'un listing"
+      vocabulary:
+        groups:
+          declaration: "La déclaration"
+          dossier: "Le dossier"
+          montants: "Montants des lignes"
+          lignes: "Les lignes affichées (liste)"
+          listing: "Le listing"
+          fiche: "La fiche du document"
+          colonnes: "Colonnes de la fiche"
+          totaux: "Totaux des colonnes"
+          fiches: "Toutes les fiches (liste)"
+        declaration:
+          titre: "Titre (nom et période, ou titre conservé)"
+          note: "Description conservée"
+          rapport: "Nom du rapport"
+          code: "Code du rapport"
+          periode: "Période (du … au …)"
+          debut: "Date de début"
+          fin: "Date de fin"
+          date: "Date du jour"
+          jours: "Nombre de jours de la période"
+          mois: "Nombre de mois de la période"
+          annees: "Nombre d'années de la période"
+        dossier:
+          nom: "Nom de la société"
+          tva: "Numéro de TVA"
+          siren: "SIREN"
+          rue: "Rue"
+          numero: "Numéro"
+          code_postal: "Code postal"
+          ville: "Ville"
+          pays: "Pays"
+          telephone: "Téléphone"
+        montants:
+          _any: "Montant de la ligne CODE dans la première colonne ; CODE_COL dans la colonne COL (par exemple CA_N1)"
+        lignes:
+          code: "Code de la ligne"
+          libelle: "Libellé (compte et intitulé pour une liste de comptes)"
+          sorte: "Sorte de ligne (formula, title, heading1…)"
+          style: "Style (normal, bold, total)"
+          retrait: "Retrait (0 à 5)"
+          compte: "Compte d'une ligne de liste de comptes"
+          montant: "Montant de la première colonne"
+          _any: "Montant de la colonne de code CODE (par exemple N, N1, P1)"
+        listing:
+          titre: "Titre conservé"
+          note: "Description conservée"
+          nom: "Nom du listing"
+          code: "Code du listing"
+          periode: "Période (du … au …)"
+          debut: "Date de début"
+          fin: "Date de fin"
+          date: "Date du jour"
+        fiche:
+          code: "Quick code de la fiche"
+          nom: "Nom de la fiche"
+          courriel: "Adresse électronique (envoi par courriel)"
+        colonnes:
+          _any: "Valeur de la colonne de code CODE pour la fiche du document"
+        totaux:
+          _any: "Total de la colonne de montant CODE"
+        fiches:
+          code: "Quick code"
+          nom: "Nom"
+          _any: "Valeur de la colonne de code CODE"
     errors:
+      documents:
+        unavailable: "Les documents depuis un modèle demandent l'extension « Modèles de documents » active."
+        too_many: "%{max} fiches au plus par demande."
+      mail:
+        subject_blank: "Le sujet est obligatoire."
+        body_blank: "Le message est obligatoire."
       code:
         invalid: "Code : une lettre puis des lettres, chiffres ou « _ », 20 caractères au plus."
         taken: "Ce code est déjà pris."

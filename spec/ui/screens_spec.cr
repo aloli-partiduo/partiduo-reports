@@ -98,7 +98,17 @@ describe "Écrans des rapports et listings sous /ext/REPORTS/ (ADR-005)" do
     csv.content.should contain("Marge;600.00;0.00")
     browser.get("/ext/REPORTS/reports/#{report.id}?format=ods").content_type.should eq("application/vnd.oasis.opendocument.spreadsheet")
     browser.get("/ext/REPORTS/reports/#{report.id}?format=pdf").content_type.should eq("application/pdf")
-    browser.get("/ext/REPORTS/reports/#{report.id}?format=tags").content.should contain("MARGE;MARGE_N1")
+    browser.get("/ext/REPORTS/reports/#{report.id}?format=tags").content_type.should_not contain("text/csv")
+    page.should_not contain("data-reports-document")
+    template = S.modeles_template("report", "Marge : {{ montants.MARGE }} / {{ montants.MARGE_N1 }}")
+    page = browser.get("/ext/REPORTS/reports/#{report.id}?from=2026-01-01&to=2026-12-31").html
+    page.should contain("data-reports-document")
+    page.should contain(%(<option value="#{template}" selected>))
+    document = browser.get("/ext/REPORTS/reports/#{report.id}?from=2026-01-01&to=2026-12-31&step=none&format=document&template=#{template}")
+    document.content_type.should eq("text/markdown")
+    document.content.should contain("Marge : 600,00 / 0,00")
+    refused = browser.get("/ext/REPORTS/reports/#{report.id}?from=2026-01-01&to=2026-12-31&format=document&template=#{template}&pdf=1")
+    browser.follow(refused).html.should contain("Pas de convertisseur PDF pour ce format sur ce serveur.")
     monthly = browser.get("/ext/REPORTS/reports/#{report.id}?from=2026-01-01&to=2026-06-30&step=quarter").html
     monthly.should contain("01/04/2026 – 30/06/2026")
     browser.get("/ext/REPORTS/reports/#{report.id}?from=2026-05-01&to=2026-01-01").html.should contain("La date de début suit la date de fin.")
@@ -121,7 +131,9 @@ describe "Écrans des rapports et listings sous /ext/REPORTS/ (ADR-005)" do
     snapshot = Api.snapshots(S.system).first
     browser.get("/ext/REPORTS/archive").html.should contain("Marge 2026")
     browser.get("/ext/REPORTS/archive/#{snapshot.id}?format=csv").content.should contain("Marge;1100.00")
-    browser.get("/ext/REPORTS/archive/#{snapshot.id}?format=tags").content.should contain("TITRE")
+    S.modeles_template("report", "{{ declaration.titre }} : {{ montants.MARGE }}")
+    browser.get("/ext/REPORTS/archive/#{snapshot.id}").html.should contain("data-reports-document")
+    browser.get("/ext/REPORTS/archive/#{snapshot.id}?format=document").content.should contain("Marge 2026 : 1\u202F100,00")
     deleted = browser.post("/ext/REPORTS/archive/#{snapshot.id}/delete")
     browser.follow(deleted).html.should contain("Résultat conservé effacé.")
     Api.snapshots(S.system).should be_empty
@@ -156,6 +168,31 @@ describe "Écrans des rapports et listings sous /ext/REPORTS/ (ADR-005)" do
                                                                          "title" => "Relancer", "remind_on" => "", "comment" => "", "visible_profile_id" => ""})
     done.status.should eq(302)
     browser.follow(done).html.should contain("1 action créée dans le suivi.")
+
+    # Documents par fiche depuis un modèle (D-REP-021) et envoi (D-REP-027).
+    browser.get("/ext/REPORTS/archive/#{snapshot.id}").html.should_not contain("data-reports-document")
+    S.modeles_template("listing", "{{ fiche.nom }} : {{ colonnes.CA }}")
+    archived = browser.get("/ext/REPORTS/archive/#{snapshot.id}").html
+    archived.should contain("data-reports-document")
+    archived.should contain(%(name="per_card"))
+    archived.should_not contain("data-reports-mail")
+    zip = browser.get("/ext/REPORTS/archive/#{snapshot.id}?format=document&per_card=1")
+    zip.content_type.should eq("application/zip")
+    whole = browser.get("/ext/REPORTS/archive/#{snapshot.id}?format=document&per_card=0")
+    whole.content_type.should eq("text/markdown")
+    transport = Partiduo::Core::Mail::MemoryTransport.new
+    Partiduo::Core::Mail.transport = transport
+    begin
+      browser.get("/ext/REPORTS/archive/#{snapshot.id}").html.should contain("data-reports-mail")
+      Partiduo::Api::Core.update_settings(S.system, Partiduo::Api::Core.settings(S.system).to_input.copy_with(email: "contact@atelier.test")).value!
+      mailed = browser.post("/ext/REPORTS/archive/#{snapshot.id}/mail", {"subject" => "Relevé", "body" => "Bonjour", "template" => ""})
+      browser.follow(mailed).html.should contain("1 message(s) envoyé(s)")
+      transport.messages.map(&.to).should eq([["morel@example.com"]])
+    ensure
+      Partiduo::Core::Mail.transport = nil
+    end
+    page = browser.get("/ext/REPORTS/listings/#{listing.id}?from=2026-01-01&to=2026-12-31&paid=no").html
+    page.should contain(%(<option value="no" selected>))
   end
 
   it "partage les définitions : export choisi, définitions fournies, reprise de la Comptabilité, copie" do

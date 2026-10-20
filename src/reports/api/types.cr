@@ -182,7 +182,10 @@ module Reports
       end
     end
 
-    record ListingRunInput, date_from : Time? = nil, date_to : Time? = nil
+    # Calcul d'un listing : période ; `paid` (A-REP-6, D-REP-024) : `true`
+    # écritures payées seulement, `false` non payées, `nil` toutes, appliqué
+    # aux références de comptes qui ne fixent pas le leur.
+    record ListingRunInput, date_from : Time? = nil, date_to : Time? = nil, paid : Bool? = nil
 
     # Cellule : `amount` pour une colonne de montant, `text` sinon.
     record CellView, text : String = "", amount : BigDecimal? = nil
@@ -193,7 +196,7 @@ module Reports
 
     record ListingResultView, listing_id : Int64?, code : String, name : String, date_from : Time, date_to : Time,
       columns : Array(ListingResultColumnView), rows : Array(ListingRowView), totals : Array(BigDecimal?),
-      issues : Array(IssueView)
+      issues : Array(IssueView), paid : Bool? = nil
 
     # --- Résultats conservés ---------------------------------------------------------------
 
@@ -220,6 +223,25 @@ module Reports
       comment : String = "",
       remind_on : Time? = nil,
       visible_profile_id : Int64? = nil
+
+    # --- Documents depuis un modèle (A-REP-1, D-REP-021) ---------------------------------------
+
+    # Sortes de modèles déclarées à `partiduo-modeles` : déclaration d'un
+    # rapport, document d'un listing.
+    DOCUMENT_KINDS = Documents::KINDS
+
+    # Modèle actif de `partiduo-modeles` proposé pour un document.
+    record TemplateOptionView, id : Int64, name : String, format : String, locale : String, is_default : Bool,
+      pdf : Bool
+
+    # Envoi par courriel des documents d'un listing conservé (une fiche, un
+    # message, son document en pièce jointe) par `Partiduo::Api::Mail`.
+    record MailInput, subject : String, body : String, template_id : Int64? = nil, pdf : Bool = true
+
+    # Bilan d'un envoi : messages remis au transport (partis à la
+    # validation), fiches écartées (sans adresse ou adresse refusée, par
+    # quick code).
+    record MailView, sent : Int32, skipped : Array(String)
 
     # --- Fichiers et partage -----------------------------------------------------------------
 

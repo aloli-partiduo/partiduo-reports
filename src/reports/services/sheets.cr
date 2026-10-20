@@ -10,8 +10,12 @@ module Reports
     # Cellule : texte, ou montant (`amount`).
     record Cell, text : String = "", amount : BigDecimal? = nil
 
-    # Ligne : style (`line`, `heading`, `subtotal`, `total`), retrait.
-    record Row, cells : Array(Cell), style : String = "line", indent : Int32 = 0
+    # Ligne : style (`line`, `heading`, `subtotal`, `total`), retrait ;
+    # `level` : niveau d'un titre dans le PDF (1 à 3, A-REP-4) ;
+    # `page_break` : le PDF commence une nouvelle page avant elle (titre
+    # principal, comme la source legacy). CSV et ODS les ignorent.
+    record Row, cells : Array(Cell), style : String = "line", indent : Int32 = 0, level : Int32 = 0,
+      page_break : Bool = false
 
     record Column, title : String, amount : Bool = false
 
@@ -33,12 +37,23 @@ module Reports
       end
     end
 
+    # Niveau de titre d'une ligne dans le PDF (D-REP-026) : le titre
+    # principal et les titres de niveau 1 au plus grand, puis 2 et 3.
+    def self.level(line : Api::RunLineView) : Int32
+      case line.kind
+      when "title", "heading1" then 1
+      when "heading2"          then 2
+      when "heading3"          then 3
+      else                          0
+      end
+    end
+
     def self.run_sheet(run : Api::RunView, title : String? = nil) : Sheet
       columns = [Column.new(I18n.t("reports.export.label"))] + run.columns.map { |column| Column.new(column.label, true) }
       rows = run.lines.map do |line|
         label = line.account ? "#{line.account} #{line.label}" : line.label
         cells = [Cell.new(label)] + line.values.map { |value| value ? Cell.new(amount: value) : Cell.new }
-        Row.new(cells, style(line), line.indent)
+        Row.new(cells, style(line), line.indent, level(line), line.kind == "title")
       end
       Sheet.new(name: "#{run.code.downcase}-#{Records.iso(run.date_from)}-#{Records.iso(run.date_to)}",
         title: title || run.name, subtitle: [Numbers.range_label(run.date_from, run.date_to)], columns: columns,
@@ -57,8 +72,9 @@ module Reports
         subtitle: [Numbers.range_label(result.date_from, result.date_to)], columns: columns, rows: rows)
     end
 
-    # Source de publipostage d'un listing (D-REP-012) : en-tête des codes de
-    # colonnes, une ligne par fiche, montants bruts.
+    # CSV des codes d'un listing (D-REP-012) : en-tête des codes de
+    # colonnes, une ligne par fiche, montants bruts (export de la source
+    # legacy ; le publipostage passe désormais par les modèles, D-REP-021).
     def self.merge_listing(result : Api::ListingResultView) : Sheet
       columns = [Column.new("QUICKCODE"), Column.new("NAME")] + result.columns.map { |column| Column.new(column.code, column.amount) }
       rows = result.rows.map do |row|
@@ -66,29 +82,6 @@ module Reports
       end
       Sheet.new(name: "#{result.code.downcase}-publipostage", title: result.name, subtitle: [] of String,
         columns: columns, rows: rows)
-    end
-
-    # Balises d'une déclaration (D-REP-010) : un enregistrement unique,
-    # une colonne par balise (`CODE` pour la première colonne, `CODE_COL`
-    # pour les autres, puis les balises du dossier et de la période).
-    def self.merge_run(run : Api::RunView, title : String, description : String) : Sheet
-      columns = [] of Column
-      cells = [] of Cell
-      rows = run.lines
-      rows.each do |line|
-        next if line.code.empty? || !line.value?
-        line.values.each_with_index do |value, index|
-          tag = index.zero? ? line.code : "#{line.code}_#{run.columns[index].code}"
-          columns << Column.new(tag, true)
-          cells << Cell.new(amount: value)
-        end
-      end
-      Tags.special(run, title, description).each do |(tag, value)|
-        columns << Column.new(tag)
-        cells << Cell.new(value)
-      end
-      Sheet.new(name: "#{run.code.downcase}-balises", title: title, subtitle: [] of String, columns: columns,
-        rows: [Row.new(cells)], decimals: run.decimals)
     end
 
     # --- Rendus --------------------------------------------------------------------------
@@ -135,9 +128,13 @@ module Reports
       columns = sheet.columns.map_with_index do |column, index|
         Partiduo::Api::Core::TableColumnInput.new(column.title, column.amount ? "amount" : "text", index.zero? ? 3.0 : 1.2)
       end
-      rows = sheet.rows.map do |row|
+      rows = [] of Partiduo::Api::Core::TableRowInput
+      sheet.rows.each do |row|
+        # Sans effet en tête de page : le cœur l'ignore pour la première.
+        rows << Partiduo::Api::Core::TableRowInput.new([] of String, "page_break") if row.page_break
         cells = row.cells.map { |cell| (amount = cell.amount) ? Numbers.amount(amount, sheet.decimals) : cell.text }
-        Partiduo::Api::Core::TableRowInput.new(cells[0, columns.size], row.style, row.indent.clamp(0, 10))
+        level = row.style == "heading" ? row.level.clamp(0, 3) : 0
+        rows << Partiduo::Api::Core::TableRowInput.new(cells[0, columns.size], row.style, row.indent.clamp(0, 10), level)
       end
       input = Partiduo::Api::Core::TableInput.new(name: sheet.name, title: sheet.title, columns: columns, rows: rows, subtitle: sheet.subtitle)
       result = Partiduo::Api::Core.table_pdf(actor, input)

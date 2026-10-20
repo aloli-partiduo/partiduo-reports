@@ -51,14 +51,26 @@ Après la tête de la référence, séparées par `;` : `[70%-S; ledger=V01; shi
 |`except=6037,609` |comptes |préfixes exclus
 |`with=41` |comptes |lignes des écritures qui portent aussi un compte commençant par `41` (contrepartie)
 |`card=CLIENT1`, `card=*` |comptes |lignes des écritures où paraît la fiche (`*` : la fiche du listing) ; `[70%-S; card=*]` : chiffre d'affaires d'un client
+|`date=payment`, `date=due` |comptes |situe chaque écriture à sa date de paiement (lettrage de toutes ses lignes de tiers) ou d'échéance au lieu de sa date (`operation`, défaut)
+|`paid=yes`, `paid=no` |comptes |écritures payées seulement, ou écritures de tiers non payées (une écriture sans tiers n'est ni l'une ni l'autre)
+|`vat=NOR,RED`, `vat=*` |comptes |lignes portant ces codes de TVA (tous avec `*`), par `Accounting.vat_totals` ; pas avec `with=` ni `card=`
+|`vat_part=base`, `tax`, `total` |comptes, avec `vat=` |base (défaut), TVA, ou les deux
 |`account=411` |fiches, analytique |restreint aux comptes commençant par `411` ; en analytique, seuls `-s` et `-S`
 |`plan=Projets` |analytique |plan du poste (nom ou identifiant), si le code existe dans plusieurs plans
 |`span=ytd` |toutes |étendue : `period`, `ytd` (début d'exercice), `year` (exercice entier), `opening` (avant la période), `month`
 |`shift=-1`, `shift=-3m` |toutes |décalage en années (ou en mois avec `m`), ajouté à celui de la colonne
 |===
 
-`with=` et `card=` lisent les écritures (20 000 au plus par référence et
-période, au-delà le calcul est tronqué et signalé).
+`with=` et `card=` sont des sommes de lignes calculées par la Comptabilité
+(`Accounting.line_sums`), sans limite de nombre d'écritures. Avec `vat=`,
+les montants sont signés débit − crédit par compte : `-s` et `-S` les
+donnent signés, `-d` et `-c` leurs parties positive et négative.
+
+`date=`, `paid=`, `vat=` et `vat_part=` ne valent que pour des comptes :
+la balance des tiers et l'analytique n'ont pas ces critères. Pour le solde
+non payé d'un client, écrire `[41%-s; card=*; paid=no]`. Le filtre « payé /
+non payé » du calcul d'un listing s'applique aux références de comptes qui
+ne fixent pas le leur.
 
 == Opérations et fonctions
 
@@ -85,6 +97,10 @@ $VA + $SUBV - $IMPOTS - $PERSO            excédent brut d'exploitation
 [70%-S; card=*]                           chiffre d'affaires de la fiche du listing
 {*-s; span=ytd}                           solde de la fiche depuis le début d'exercice
 {{ATELIER-s; account=6}}                  charges ventilées sur le poste ATELIER
+[70%-S; date=payment]                     ventes encaissées dans la période
+[70%-S; card=*; paid=no]                  chiffre d'affaires non encore payé du client
+[%-S; vat=NOR; ledger_kind=sale]          base des ventes au taux normal
+[445%-S; vat=*; vat_part=tax]             TVA collectée, tous taux
 round(pct(@N - @N1, abs(@N1)), 1)         variation en pourcentage (colonne)
 if($RES > 0, $RES * 0.15, 0)              montant conditionnel
 ----

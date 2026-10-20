@@ -1,4 +1,4 @@
-{# SPDX-License-Identifier: AGPL-3.0-or-later. Calcul d'un rapport (D-REP-007, D-REP-008) : période et génération périodique (formulaire GET), avertissements, rapport mis en page, exports CSV, ODS, PDF et balises de publipostage, révision et conservation. #}{% extend "ui/base.html" %}
+{# SPDX-License-Identifier: AGPL-3.0-or-later. Calcul d'un rapport (D-REP-007, D-REP-008) : période et génération périodique (formulaire GET), avertissements, rapport mis en page, exports CSV, ODS et PDF, déclaration générée depuis un modèle, révision et conservation. #}{% extend "ui/base.html" %}
 {% block title %}{{ title }}{% endblock title %}
 {% block scripts %}<link rel="stylesheet" href="{% asset 'reports/css/reports.css' %}">{% endblock scripts %}
 {% block crumbs %}{% include "ui/_crumbs.html" %}{% endblock crumbs %}
@@ -20,5 +20,5 @@
   <header><h2 id="rep-result-title">{{ period }}</h2></header>
   {% include "reports/_run.html" %}
   <div class="pd-body rep-exports">{% for item in exports %}<a class="button is-small" href="{{ item.url }}" download>{% include "ui/_icon.html" with name="download" %}<span>{{ item.label }}</span></a>{% endfor %}{% if keep_url %}<a class="button is-small is-primary" href="{{ keep_url }}">{% include "ui/_icon.html" with name="library" %}<span>{% translate "reports_ui.keep.button" %}</span></a>{% endif %}</div>
-</section>{% endif %}
+</section>{% include "reports/_document.html" %}{% endif %}
 {% endblock content %}

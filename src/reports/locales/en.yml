@@ -116,10 +116,85 @@ en:
       category_unknown: "Card category %{code} not found in this company file: empty listing."
       cards_truncated: "More than %{max} cards: listing truncated."
       legacy_line: "Line “%{line}” not converted (%{formula}): kept as a note, to review."
-      legacy_date_paid: "Line “%{line}”: the payment or due date filter is not carried over (entry date)."
-      legacy_vat: "Line “%{line}”: the total per VAT code is not carried over (see VAT returns)."
-      legacy_reconciled: "Line “%{line}”: the total of reconciled operations is not carried over."
+      legacy_vat: "Line \"%{line}\": the VAT code of the legacy source does not carry over between files: detail not carried over, to rewrite with vat=CODE (see the file's VAT codes)."
+      legacy_reconciled: "Line \"%{line}\": reconciled operations are taken at their payment date (matching); please check."
+      paid_card: "The paid / unpaid filter does not apply to a card ({…}): use an account reference with card= (for example [411%-s; card=*])."
+    modeles:
+      kinds:
+        report: "Report declaration"
+        listing: "Listing document"
+      vocabulary:
+        groups:
+          declaration: "The declaration"
+          dossier: "The company file"
+          montants: "Line amounts"
+          lignes: "Displayed lines (list)"
+          listing: "The listing"
+          fiche: "The document's card"
+          colonnes: "Card columns"
+          totaux: "Column totals"
+          fiches: "All cards (list)"
+        declaration:
+          titre: "Title (name and period, or kept title)"
+          note: "Kept description"
+          rapport: "Report name"
+          code: "Report code"
+          periode: "Period (from … to …)"
+          debut: "Start date"
+          fin: "End date"
+          date: "Today's date"
+          jours: "Number of days in the period"
+          mois: "Number of months in the period"
+          annees: "Number of years in the period"
+        dossier:
+          nom: "Company name"
+          tva: "VAT number"
+          siren: "SIREN"
+          rue: "Street"
+          numero: "Number"
+          code_postal: "Postcode"
+          ville: "City"
+          pays: "Country"
+          telephone: "Phone"
+        montants:
+          _any: "Amount of line CODE in the first column; CODE_COL in column COL (for example CA_N1)"
+        lignes:
+          code: "Line code"
+          libelle: "Label (account and name for an account list)"
+          sorte: "Line kind (formula, title, heading1…)"
+          style: "Style (normal, bold, total)"
+          retrait: "Indent (0 to 5)"
+          compte: "Account of an account-list line"
+          montant: "First column amount"
+          _any: "Amount of the column with code CODE (for example N, N1, P1)"
+        listing:
+          titre: "Kept title"
+          note: "Kept description"
+          nom: "Listing name"
+          code: "Listing code"
+          periode: "Period (from … to …)"
+          debut: "Start date"
+          fin: "End date"
+          date: "Today's date"
+        fiche:
+          code: "Card quick code"
+          nom: "Card name"
+          courriel: "Email address (sending by email)"
+        colonnes:
+          _any: "Value of the column with code CODE for the document's card"
+        totaux:
+          _any: "Total of the amount column CODE"
+        fiches:
+          code: "Quick code"
+          nom: "Name"
+          _any: "Value of the column with code CODE"
     errors:
+      documents:
+        unavailable: "Documents from a template require the “Document templates” extension to be active."
+        too_many: "%{max} cards at most per request."
+      mail:
+        subject_blank: "The subject is required."
+        body_blank: "The message is required."
       code:
         invalid: "Code: a letter, then letters, digits or “_”, 20 characters at most."
         taken: "This code is already taken."

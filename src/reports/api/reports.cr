@@ -129,13 +129,34 @@ module Reports
       Sheets.file(Sheets.run_sheet(run.value!), format, actor)
     end
 
-    # Source de publipostage d'un rapport calculé (CSV des balises,
-    # D-REP-010).
-    def self.report_tags_file(actor : Actor, id : Int64, input : RunInput) : Result(FileView)
+    # Déclaration générée depuis un modèle de `partiduo-modeles` (sorte
+    # `report`, D-REP-021) pour un rapport calculé : le PDF si `pdf`, sinon
+    # le fichier au format du modèle. `template_id` `nil` : le modèle par
+    # défaut de la langue courante. Exige `reports.read` ici, `modeles.read`
+    # chez MODELES, et MODELES active.
+    def self.report_document(actor : Actor, id : Int64, input : RunInput, template_id : Int64? = nil,
+                             pdf : Bool = false) : Result(FileView)
+      authorize!(actor, READ)
+      return Result(FileView).failure(Documents.unavailable) unless Partiduo::Modules.active?(Documents::MODELES)
       run = run_report(actor, id, input)
       return Result(FileView).failure(run.errors) if run.failure?
       view = run.value!
-      Sheets.file(Sheets.merge_run(view, view.name, ""), "csv", actor)
+      title = "#{view.name} — #{Numbers.range_label(view.date_from, view.date_to)}"
+      Documents.render(actor, template_id, Documents::REPORT, Documents.report_data(view, title, ""), pdf,
+        "#{view.code.downcase}-#{Records.iso(view.date_to)}")
+    end
+
+    # Modèles actifs de `partiduo-modeles` pour une sorte de document
+    # (`DOCUMENT_KINDS`) ; vide quand MODELES est inactive ou sans
+    # `modeles.read` : la fonction n'est alors pas proposée.
+    def self.document_templates(actor : Actor, kind : String) : Array(TemplateOptionView)
+      authorize!(actor, READ)
+      return [] of TemplateOptionView unless DOCUMENT_KINDS.includes?(kind) && Documents.available?(actor)
+      templates = Modeles::Api.templates(actor, Modeles::Api::TemplateQuery.new(kind: kind, active_only: true))
+      templates.map do |view|
+        TemplateOptionView.new(view.id, view.name, view.format, view.locale, view.is_default,
+          Modeles::Api.pdf_available?(actor, view.format))
+      end
     end
 
     # Rapports personnalisés de la Comptabilité, à reprendre ici.
@@ -203,9 +224,14 @@ module Reports
       Sheets.file(Sheets.run_sheet(view.run, view.summary.title), format, actor)
     end
 
-    def self.declaration_tags_file(actor : Actor, id : Int64) : Result(FileView)
+    # Déclaration conservée générée depuis un modèle (sorte `report`,
+    # D-REP-021) : mêmes valeurs que la copie figée, titre et description
+    # compris.
+    def self.declaration_document(actor : Actor, id : Int64, template_id : Int64? = nil, pdf : Bool = false) : Result(FileView)
       view = declaration(actor, id)
-      Sheets.file(Sheets.merge_run(view.run, view.summary.title, view.summary.description), "csv", actor)
+      return Result(FileView).failure(Documents.unavailable) unless Partiduo::Modules.active?(Documents::MODELES)
+      data = Documents.report_data(view.run, view.summary.title, view.summary.description)
+      Documents.render(actor, template_id, Documents::REPORT, data, pdf, Documents.slug(view.summary.title))
     end
 
     def self.listing_snapshot(actor : Actor, id : Int64) : ListingSnapshotView
@@ -220,6 +246,84 @@ module Reports
       view = listing_snapshot(actor, id)
       sheet = merge ? Sheets.merge_listing(view.result) : Sheets.listing_sheet(view.result, view.summary.title)
       Sheets.file(sheet, merge ? "csv" : format, actor)
+    end
+
+    # Documents d'un listing conservé depuis un modèle (sorte `listing`,
+    # D-REP-021) : avec `per_card`, un document par fiche réunis dans une
+    # archive ZIP (le publipostage de la source legacy ; 500 fiches au
+    # plus), sinon un document pour tout le listing (fiches en lignes,
+    # totaux).
+    def self.listing_document(actor : Actor, id : Int64, template_id : Int64? = nil, pdf : Bool = false,
+                              per_card : Bool = true) : Result(FileView)
+      view = listing_snapshot(actor, id)
+      return Result(FileView).failure(Documents.unavailable) unless Partiduo::Modules.active?(Documents::MODELES)
+      result = view.result
+      title = view.summary.title
+      unless per_card
+        data = Documents.listing_data(result, title, view.summary.description, rows: true)
+        return Documents.render(actor, template_id, Documents::LISTING, data, pdf, Documents.slug(title))
+      end
+      if result.rows.size > Documents::MAX_DOCUMENTS
+        return Result(FileView).failure(Records.error("base", "documents.too_many", {"max" => Documents::MAX_DOCUMENTS.to_s}))
+      end
+      files = [] of FileView
+      result.rows.each do |row|
+        data = Documents.listing_data(result, title, view.summary.description, row)
+        file = Documents.render(actor, template_id, Documents::LISTING, data, pdf, Documents.slug(row.card_code))
+        return file if file.failure?
+        files << file.value!
+      end
+      return Result(FileView).failure(Records.error("base", "keep.none")) if files.empty?
+      Result(FileView).success(FileView.new("#{Documents.slug(title)}.zip", "application/zip", Documents.zip(files)))
+    end
+
+    # Envoie à chaque fiche d'un listing conservé son document en pièce
+    # jointe (A-REP-2, `Partiduo::Api::Mail.deliver`, D-REP-027) : un message
+    # par fiche à son adresse électronique, parti à la validation (tout ou
+    # rien : un rendu refusé n'envoie rien). Les fiches sans adresse, ou
+    # dont l'adresse est refusée, sont écartées et rendues. Exige
+    # `reports.design`, `modeles.read`, le transport de l'instance
+    # configuré et MODELES active.
+    def self.mail_listing(actor : Actor, id : Int64, input : MailInput) : Result(MailView)
+      authorize!(actor, DESIGN)
+      view = listing_snapshot(actor, id)
+      return Result(MailView).failure(Documents.unavailable) unless Partiduo::Modules.active?(Documents::MODELES)
+      errors = [] of FieldError
+      errors << Records.error("subject", "mail.subject_blank") if input.subject.strip.empty?
+      errors << Records.error("body", "mail.body_blank") if input.body.strip.empty?
+      errors << FieldError.base("core.errors.mail.not_configured") unless Partiduo::Api::Mail.configured?(actor)
+      if view.result.rows.size > Documents::MAX_DOCUMENTS
+        errors << Records.error("base", "documents.too_many", {"max" => Documents::MAX_DOCUMENTS.to_s})
+      end
+      return Result(MailView).failure(errors) unless errors.empty?
+      Transaction.run do
+        sent = 0
+        skipped = [] of String
+        failure = nil
+        view.result.rows.each do |row|
+          email = Partiduo::Api::Cards.card(actor, row.card_id).email.strip
+          if email.empty?
+            skipped << row.card_code
+            next
+          end
+          data = Documents.listing_data(view.result, view.summary.title, view.summary.description, row, email)
+          file = Documents.render(actor, input.template_id, Documents::LISTING, data, input.pdf, Documents.slug(row.card_code))
+          unless document = file.value?
+            failure = file.errors
+            break
+          end
+          attachment = Partiduo::Api::Mail::AttachmentInput.new(document.filename, document.content_type, document.content)
+          message = Partiduo::Api::Mail::MessageInput.new(to: [email], subject: input.subject.strip, body: input.body,
+            attachments: [attachment])
+          delivered = Partiduo::Api::Mail.deliver(actor, message, MODULE_CODE)
+          delivered.success? ? (sent += 1) : (skipped << row.card_code)
+        end
+        # Un échec annule la transaction : aucun message ne part.
+        if errors = failure
+          next Result(MailView).failure(errors)
+        end
+        Result(MailView).success(MailView.new(sent, skipped))
+      end
     end
 
     # Efface une déclaration ou un listing conservé.
@@ -465,6 +569,7 @@ module Reports
         return Result(ListingResultView).failure(Records.error("date_from", "run.dates"))
       end
       sources = Sources.new(actor)
+      sources.default_paid = input.paid
       range = sources.calendar.default(input.date_from, input.date_to)
       view = ListingEngine.new(actor, listing, sources).run(range)
       view = view.copy_with(listing_id: nil) if listing.id.zero?

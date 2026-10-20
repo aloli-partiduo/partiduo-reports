@@ -91,7 +91,7 @@ describe "Conventions de l'extension REPORTS" do
       "reports.formats"        => Reports::Api::FORMATS,
       "reports.snapshot_kinds" => Reports::Api::SNAPSHOT_KINDS,
       "reports.starters"       => Reports::Starters::ALL.map { |item| "#{item.code.downcase}.name" },
-      "reports_ui.exports"     => %w[csv ods pdf tags merge],
+      "reports_ui.exports"     => %w[csv ods pdf merge],
     }.each do |scope, codes|
       Partiduo::LOCALES.each do |locale|
         I18n.with_locale(locale) { codes.each { |code| I18n.t("#{scope}.#{code}").should_not contain("missing") } }

@@ -21,7 +21,11 @@ module Reports
   #   `span=period|ytd|year|opening|month`, `shift=-1` (années) ou `-3m`
   #   (mois) ; pour des comptes, `with=411` (écritures qui portent aussi
   #   ce compte : contrepartie) et `card=QCODE` ou `card=*` (écritures où
-  #   paraît la fiche), calculés en lisant les écritures ;
+  #   paraît la fiche), sommés par le cœur (`Accounting.line_sums`) ;
+  #   `date=operation|payment|due` (date qui situe l'écriture dans la
+  #   période) et `paid=yes|no` (écritures payées ou non) ; `vat=CODE,…` ou
+  #   `vat=*` (lignes portant ces codes de TVA, `Accounting.vat_totals`) et
+  #   `vat_part=base|tax|total` ;
   # * `$CODE` montant d'une autre ligne dans la même colonne, `@CODE` d'une
   #   autre colonne sur la même ligne (formules de colonnes) ;
   # * nombres (point décimal), `+ - * /`, parenthèses ; fonctions `abs`,
@@ -42,7 +46,12 @@ module Reports
 
     SPANS        = %w[period ytd year opening month]
     LEDGER_KINDS = %w[purchase sale financial misc]
-    OPTION_KEYS  = %w[ledger ledger_kind except account plan span shift with card]
+    OPTION_KEYS  = %w[ledger ledger_kind except account plan span shift with card date paid vat vat_part]
+    # Date qui situe une écriture dans la période (A-REP-6) et parties d'un
+    # total par code de TVA (A-REP-5).
+    DATE_BASES = %w[operation payment due]
+    VAT_PARTS  = %w[base tax total]
+    PAID       = {"yes" => true, "no" => false}
 
     FUNCTIONS = {"abs" => 1..1, "round" => 1..2, "min" => 2..20, "max" => 2..20, "pos" => 1..1, "neg" => 1..1,
                  "pct" => 2..2, "if" => 3..3}
@@ -77,10 +86,25 @@ module Reports
       span : String? = nil,
       shift_months : Int32 = 0,
       counterpart : String? = nil,
-      card : String? = nil do
-      # Calcul par lecture des écritures (contrepartie, fiche de l'écriture).
+      card : String? = nil,
+      date_basis : String? = nil,
+      paid : Bool? = nil,
+      vat : Array(String)? = nil,
+      vat_part : String? = nil do
+      # Sommes de lignes par critère (contrepartie, fiche de l'écriture).
       def scan? : Bool
         !counterpart.nil? || !card.nil?
+      end
+
+      # Totaux par code de TVA (`vat=`).
+      def vat? : Bool
+        !vat.nil?
+      end
+
+      # Critères propres aux comptes (date, paiement, TVA) : refusés sur une
+      # fiche ou un poste analytique.
+      def account_only? : Bool
+        !date_basis.nil? || !paid.nil? || vat? || !vat_part.nil?
       end
     end
 
@@ -486,9 +510,7 @@ module Reports
         pattern = parts[1].upcase
         prefix = parts[2] == "%"
         raise Error.new("account", {"value" => match[0]}) if pattern.empty? && !prefix
-        if options.account || options.plan
-          raise Error.new("option", {"value" => match[0], "name" => options.account ? "account" : "plan"})
-        end
+        account_options!(options, match[0])
         ref = AccountRef.new(pattern, prefix, parts[3]?.try(&.[0]), options)
         @current = true if options.card == "*"
         @accounts << ref
@@ -504,6 +526,7 @@ module Reports
         raise Error.new("option", {"value" => match[0], "name" => "plan"}) if options.plan
         raise Error.new("option", {"value" => match[0], "name" => "except"}) unless options.except.empty?
         raise Error.new("option", {"value" => match[0], "name" => "with"}) if options.scan?
+        raise Error.new("option", {"value" => match[0], "name" => account_only(options)}) if options.account_only?
         code = body == "*" ? "*" : quick_code(body, match[0])
         ref = CardRef.new(code, mode, options)
         @cards << ref
@@ -521,12 +544,30 @@ module Reports
         if options.ledgers.present? || options.ledger_kinds.present? || options.except.present? || options.scan?
           raise Error.new("option", {"value" => match[0], "name" => "ledger"})
         end
+        raise Error.new("option", {"value" => match[0], "name" => account_only(options)}) if options.account_only?
         if options.account && mode && !mode.in?('s', 'S')
           raise Error.new("analytic_mode", {"value" => match[0]})
         end
         ref = AnalyticRef.new(code, mode, options)
         @analytics << ref
         ref
+      end
+
+      # Options admises sur des comptes : ni `account`, ni `plan` ; `vat`
+      # sans `with` ni `card` ; `vat_part` avec `vat`.
+      private def account_options!(options : Options, raw : String) : Nil
+        if options.account || options.plan
+          raise Error.new("option", {"value" => raw, "name" => options.account ? "account" : "plan"})
+        end
+        raise Error.new("option", {"value" => raw, "name" => "vat"}) if options.vat? && options.scan?
+        raise Error.new("option", {"value" => raw, "name" => "vat_part"}) if options.vat_part && !options.vat?
+      end
+
+      # Nom de la première option propre aux comptes, pour le message.
+      private def account_only(options : Options) : String
+        return "date" if options.date_basis
+        return "paid" unless options.paid.nil?
+        options.vat? ? "vat" : "vat_part"
       end
 
       private def code_ref(sigil : Char) : Node
@@ -587,8 +628,22 @@ module Reports
         invalid!(raw, "span") if span && !SPANS.includes?(span)
         shift = values["shift"]?.try { |value| Formula.shift_months(value) || invalid!(raw, "shift") } || 0
         card = values["card"]?.try { |value| value == "*" ? "*" : quick_code(value, raw) }
+        date = values["date"]?.try(&.downcase)
+        invalid!(raw, "date") if date && !DATE_BASES.includes?(date)
+        paid = values["paid"]?.try { |value| PAID.fetch(value.downcase) { invalid!(raw, "paid") } }
+        part = values["vat_part"]?.try(&.downcase)
+        invalid!(raw, "vat_part") if part && !VAT_PARTS.includes?(part)
         Options.new(list_option(values, "ledger", raw, &.upcase), kinds, except, account_option(values, "account", raw),
-          values["plan"]?, span, shift, account_option(values, "with", raw), card)
+          values["plan"]?, span, shift, account_option(values, "with", raw), card, date, paid, vat_option(values, raw), part)
+      end
+
+      # Codes de TVA (`vat=NOR,RED`) ou tous (`vat=*` : liste vide).
+      private def vat_option(values : Hash(String, String), raw : String) : Array(String)?
+        value = values["vat"]? || return
+        return [] of String if value.strip == "*"
+        codes = list(value, raw, "vat", &.upcase)
+        invalid!(raw, "vat") unless codes.all?(&.matches?(/\A[0-9A-Z_.\-]{1,20}\z/))
+        codes
       end
 
       private def list_option(values : Hash(String, String), key : String, raw : String, & : String -> String) : Array(String)

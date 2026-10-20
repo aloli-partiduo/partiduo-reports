@@ -1,9 +1,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 module Reports
-  # Balises d'une déclaration pour un publipostage (D-REP-010) : celles des
-  # lignes (`CODE`, `CODE_COL`) et celles du dossier et de la période, sur
-  # le modèle des balises spéciales de la source legacy. Interne.
+  # Balises spéciales d'une déclaration (D-REP-010) : dossier et période,
+  # sur le modèle de la source legacy ; elles remplissent les objets
+  # `declaration` et `dossier` d'un document généré depuis un modèle
+  # (`Documents`, D-REP-021). Interne.
   module Tags
     def self.special(run : Api::RunView, title : String, description : String) : Array({String, String})
       settings = begin

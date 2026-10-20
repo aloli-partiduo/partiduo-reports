@@ -85,6 +85,32 @@ module Reports
         go(url)
       end
 
+      # Formulaire « Générer un document » (D-REP-021) : modèles actifs de
+      # la sorte `kind` (le défaut de la langue choisi d'abord) ; vide quand
+      # MODELES est inactive ou qu'aucun modèle n'existe, et le fragment
+      # `reports/_document.html` n'affiche alors rien.
+      def document_form(kind : String, hidden : Hash(String, String), per_card : Bool = false) : Hash(String, Ui::Value)
+        templates = Api.document_templates(actor, kind)
+        return {} of String => Ui::Value if templates.empty?
+        language = I18n.locale.to_s
+        chosen = templates.find { |item| item.is_default && item.locale == language } || templates.first
+        options = templates.map do |item|
+          Ui.row({"value" => item.id.to_s, "label" => "#{item.name} — #{item.format.upcase} · #{item.locale}",
+                  "selected" => Ui.flag(item.id == chosen.id)})
+        end
+        {
+          "document_templates" => options,
+          "document_hidden"    => hidden.map { |name, value| Ui.row({"name" => name, "value" => value}) },
+          "document_per_card"  => Ui.flag(per_card),
+          "document_pdf"       => Ui.flag(templates.any?(&.pdf)),
+        } of String => Ui::Value
+      end
+
+      # Modèle et PDF demandés par le formulaire d'un document.
+      def document_choice : {Int64?, Bool}
+        {query("template").to_i64?, query("pdf") == "1"}
+      end
+
       def amount(value : BigDecimal?, decimals : Int32 = 2) : String
         value.nil? ? "" : fmt.amount(value, decimals)
       end

@@ -4,9 +4,11 @@ module Reports
   # Montants des références d'une formule, lus par le contrat du cœur avec
   # les droits de l'acteur (D-REP-006) et gardés le temps d'un calcul :
   #
-  # * comptes : `Accounting.trial_balance` (une balance par période et
-  #   jeu de journaux) ; avec `with` (contrepartie) ou `card` (fiche de
-  #   l'écriture), `Accounting.entries`, page par page ;
+  # * comptes : `Accounting.trial_balance` (une balance par période, jeu de
+  #   journaux et critère de date ou de paiement) ; avec `with`
+  #   (contrepartie) ou `card` (fiche de l'écriture),
+  #   `Accounting.line_sums`, calculé par le cœur (D-REP-022) ; avec `vat`,
+  #   `Accounting.vat_totals` (D-REP-023) ;
   # * fiches : `Accounting.auxiliary_balance` par nature de fiche ;
   # * analytique : `Analytic.balance`, et `Analytic.table` avec `account`.
   #
@@ -21,18 +23,18 @@ module Reports
 
     ZERO = BigDecimal.new(0)
 
-    # Écritures lues au plus pour une référence `with` ou `card`.
-    MAX_SCAN = 20_000
-    PAGE     =    500
-
     # Montants d'un compte : débit et crédit de la période, intitulé.
     record AccountSum, label : String, debit : BigDecimal, credit : BigDecimal
 
     getter calendar : Periods::Calendar
     getter issues = [] of Api::IssueView
+    # Filtre « payé / non payé » d'un listing (A-REP-6, D-REP-024) : appliqué
+    # aux références de comptes qui ne fixent pas le leur.
+    property default_paid : Bool? = nil
 
     @trial = {} of String => Hash(String, AccountSum)
     @scans = {} of String => Hash(String, AccountSum)
+    @vat = {} of String => Hash(String, AccountSum)
     @auxiliary = {} of String => Hash(String, AccountSum)
     @analytic = {} of String => Hash(Int64, AccountSum)
     @analytic_tables = {} of String => Array(Ana::TableRowView)
@@ -59,10 +61,12 @@ module Reports
       return {} of String => AccountSum if range.empty?
       usable, ledger_ids = ledger_choice(ref.options)
       return {} of String => AccountSum unless usable
-      sums = if ref.options.scan?
+      sums = if ref.options.vat?
+               vat(ref, range, ledger_ids)
+             elsif ref.options.scan?
                scan(ref, range, ledger_ids, card)
              else
-               trial(range, ledger_ids)
+               trial(ref, range, ledger_ids)
              end
       sums.select { |number, _| ref.covers?(number) }
     end
@@ -90,57 +94,74 @@ module Reports
       value > ZERO ? value : ZERO
     end
 
-    private def trial(range : Range, ledger_ids : Array(Int64)?) : Hash(String, AccountSum)
-      key = "#{Records.iso(range.from)}|#{Records.iso(range.to)}|#{ledger_ids.try(&.join(','))}"
-      @trial[key] ||= guarded("accounting.report.read", {} of String => AccountSum) do
+    # Date qui situe les écritures dans la période (`date=`, A-REP-6).
+    private def basis(options : Formula::Options) : Acc::DateBasis
+      Acc::DateBasis.from_code(options.date_basis || "operation")
+    end
+
+    # Écritures payées ou non (`paid=`, sinon le filtre du listing).
+    private def paid(options : Formula::Options) : Bool?
+      options.paid.nil? ? @default_paid : options.paid
+    end
+
+    private def criteria_key(options : Formula::Options, range : Range, ledger_ids : Array(Int64)?) : String
+      "#{Records.iso(range.from)}|#{Records.iso(range.to)}|#{ledger_ids.try(&.join(','))}|#{basis(options)}|#{paid(options)}"
+    end
+
+    private def trial(ref : Formula::AccountRef, range : Range, ledger_ids : Array(Int64)?) : Hash(String, AccountSum)
+      options = ref.options
+      @trial[criteria_key(options, range, ledger_ids)] ||= guarded("accounting.report.read", {} of String => AccountSum) do
         view = Acc.trial_balance(@actor, Acc::TrialBalanceQuery.new(date_from: range.from, date_to: range.to,
-          ledger_ids: ledger_ids))
+          ledger_ids: ledger_ids, date_basis: basis(options), paid: paid(options)))
         view.rows.to_h { |row| {row.number, AccountSum.new(row.label, row.debit, row.credit)} }
       end
     end
 
     # Lignes des comptes de la référence dans les écritures de la période
-    # qui portent aussi une ligne du compte `with`, ou la fiche `card`.
+    # qui portent aussi une ligne du compte `with`, ou la fiche `card` :
+    # sommes calculées par le cœur (A-REP-3, `Accounting.line_sums`).
     private def scan(ref : Formula::AccountRef, range : Range, ledger_ids : Array(Int64)?, card : String?) : Hash(String, AccountSum)
-      card_code = ref.options.card == "*" ? card : ref.options.card
-      if ref.options.card && card_code.nil?
+      options = ref.options
+      card_code = options.card == "*" ? card : options.card
+      if options.card && card_code.nil?
         issue("current_card")
         return {} of String => AccountSum
       end
-      key = "#{ref.pattern}|#{ref.prefix?}|#{ref.options.counterpart}|#{card_code}|#{Records.iso(range.from)}|#{Records.iso(range.to)}|#{ledger_ids.try(&.join(','))}"
-      @scans[key] ||= guarded("accounting.entry.read", {} of String => AccountSum) do
-        sums = {} of String => AccountSum
-        allowed = ledger_ids.try(&.to_set)
-        offset = 0
-        loop do
-          query = Acc::EntryQuery.new(date_from: range.from, date_to: range.to, account: ref.pattern.presence,
-            account_prefix: ref.prefix?, card: card_code, offset: offset, limit: PAGE)
-          page = Acc.entries(@actor, query)
-          page.each { |entry| add_entry(sums, entry, ref, allowed) }
-          offset += PAGE
-          break if page.size < PAGE
-          if offset >= MAX_SCAN
-            issue("scan_truncated", {"max" => MAX_SCAN.to_s})
-            break
-          end
-        end
-        sums
+      key = "#{ref.pattern}|#{ref.prefix?}|#{options.counterpart}|#{card_code}|#{criteria_key(options, range, ledger_ids)}"
+      @scans[key] ||= guarded("accounting.report.read", {} of String => AccountSum) do
+        query = Acc::LineSumQuery.new(account: ref.pattern.presence, account_prefix: ref.prefix?,
+          counterpart_prefix: options.counterpart, card: card_code, ledger_ids: ledger_ids, date_from: range.from,
+          date_to: range.to, date_basis: basis(options), paid: paid(options))
+        Acc.line_sums(@actor, query).to_h { |row| {row.account_number, AccountSum.new(row.account_label, row.debit, row.credit)} }
       end
     end
 
-    # Ajoute les lignes retenues d'une écriture (journal admis, contrepartie
-    # présente) aux sommes par compte.
-    private def add_entry(sums : Hash(String, AccountSum), entry : Acc::EntryView, ref : Formula::AccountRef,
-                          allowed : Set(Int64)?) : Nil
-      return if allowed && !allowed.includes?(entry.ledger_id)
-      items = entry.lines
-      if counterpart = ref.options.counterpart
-        return unless items.any?(&.account_number.starts_with?(counterpart))
-      end
-      items.each do |line|
-        next unless ref.prefix? ? line.account_number.starts_with?(ref.pattern) : line.account_number == ref.pattern
-        current = sums[line.account_number]? || AccountSum.new(line.account_label, ZERO, ZERO)
-        sums[line.account_number] = AccountSum.new(current.label, current.debit + line.debit, current.credit + line.credit)
+    # Base, TVA ou les deux des lignes portant les codes de TVA de la
+    # référence (A-REP-5, `Accounting.vat_totals`), par compte : montant
+    # signé débit − crédit, rangé au débit s'il est positif, au crédit
+    # sinon (`-d` et `-c` en donnent les parties positive et négative).
+    private def vat(ref : Formula::AccountRef, range : Range, ledger_ids : Array(Int64)?) : Hash(String, AccountSum)
+      options = ref.options
+      codes = options.vat.try { |list| list.empty? ? nil : list }
+      part = options.vat_part || "base"
+      key = "#{ref.pattern}|#{ref.prefix?}|#{codes.try(&.join(','))}|#{part}|#{criteria_key(options, range, ledger_ids)}"
+      @vat[key] ||= guarded("accounting.report.read", {} of String => AccountSum) do
+        query = Acc::VatTotalsQuery.new(date_from: range.from, date_to: range.to, ledger_ids: ledger_ids,
+          account: ref.pattern.presence, account_prefix: ref.prefix?, vat_rates: codes, date_basis: basis(options),
+          paid: paid(options))
+        signed = {} of String => {String, BigDecimal}
+        Acc.vat_totals(@actor, query).each do |row|
+          amount = case part
+                   when "tax"   then row.tax
+                   when "total" then row.base + row.tax
+                   else              row.base
+                   end
+          label, total = signed[row.account_number]? || {row.account_label, ZERO}
+          signed[row.account_number] = {label, total + amount}
+        end
+        signed.transform_values do |(label, total)|
+          AccountSum.new(label, Sources.positive(total), Sources.positive(-total))
+        end
       end
     end
 
@@ -178,6 +199,8 @@ module Reports
     # Montant d'une fiche (balance des tiers de sa nature, restreinte aux
     # comptes `account`).
     def card(code : String, kind : String, ref : Formula::CardRef, range : Range) : BigDecimal
+      # La balance des tiers n'a pas de critère de paiement (D-REP-024).
+      issue("paid_card") unless @default_paid.nil?
       return ZERO if range.empty?
       usable, ledger_ids = ledger_choice(ref.options)
       return ZERO unless usable

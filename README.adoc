@@ -14,8 +14,9 @@ greffons « Rapport avancé » (RAPAV) et « Listing » de NOALYSS
 par lignes et colonnes, avec des formules sur les comptes, les fiches,
 l'analytique et les périodes, calculées en décimal par le contrat du cœur
 et un analyseur sûr (ni évaluation de code, ni SQL fourni par
-l'utilisateur) ; un listing donne une ligne par fiche, sert de source de
-publipostage et s'inscrit au suivi. Les définitions se partagent entre
+l'utilisateur) ; un listing donne une ligne par fiche, produit un document
+par fiche depuis un modèle (publipostage, envoi par courriel) et s'inscrit
+au suivi. Les définitions se partagent entre
 dossiers par un format JSON documenté.
 
 Spécification : `../partiduo-docs/adr/ADR-003-contrat-extensions.adoc`
@@ -40,20 +41,25 @@ génération périodique (une colonne par tranche) ; aperçu en HTMX.
 
 |Formules
 |`[70%-S]`, `{CLIENT-s}`, `{{PROJET}}`, options (journaux, exclusions,
-contrepartie, fiche de l'écriture, période), `$CODE`, `@CODE`, `abs`,
+contrepartie, fiche de l'écriture, période, date de paiement ou
+d'échéance, payé / non payé, codes de TVA), `$CODE`, `@CODE`, `abs`,
 `round`, `min`, `max`, `pos`, `neg`, `pct`, `if`.
 
 |Déclarations
-|Révision des montants puis conservation d'une copie figée ; balises de
-publipostage.
+|Révision des montants puis conservation d'une copie figée ; déclaration
+générée depuis un modèle (AsciiDoc, Markdown, ODT, DOCX, et PDF) par
+`partiduo-modeles`.
 
 |Listings
 |Fiches d'une catégorie ou d'une nature ; champs, attributs, formules sur
-la fiche ; conditions, tri, totaux ; fiches cochées conservées ; source de
-publipostage ; inscription au suivi.
+la fiche ; conditions, tri, totaux ; filtre payé / non payé ; fiches
+cochées conservées ; un document par fiche (archive ZIP) ou pour tout le
+listing depuis un modèle ; envoi de chaque document par courriel ;
+inscription au suivi.
 
 |Exports
-|CSV, ODS, PDF/A-2b par le socle.
+|CSV, ODS, PDF/A-2b par le socle (titre principal en tête de page,
+niveaux de titre).
 
 |Partage
 |Export et import JSON, import des définitions `.bin` de la source legacy,
@@ -72,7 +78,7 @@ src/
     ├── app.cr, manifest.cr    # code REPORTS, permissions, menus
     ├── models/                # tables reports_*
     ├── migrations/            # 0001 : tables et contraintes
-    ├── services/              # formule, périodes, sources, calculs, exports, partage (interne)
+    ├── services/              # formule, périodes, sources, calculs, exports, documents, partage (interne)
     ├── api/                   # contrat public Reports::Api
     ├── starters/              # définitions fournies (JSON)
     └── locales/               # fr, en, nl
@@ -87,15 +93,21 @@ ui/
 [source,crystal]
 ----
 require "partiduo-ui-bulma/partiduo_ui"
+require "partiduo-modeles"
+require "partiduo-modeles/ui/bulma"
 require "partiduo-reports"
 require "partiduo-reports/ui/bulma"
-# installed_apps += Reports::INSTALLED_APPS + Reports::Ui::INSTALLED_APPS
-# ligne de commande : require "partiduo-reports/cli"
+# installed_apps += Modeles::INSTALLED_APPS + Modeles::Ui::INSTALLED_APPS
+#                 + Reports::INSTALLED_APPS + Reports::Ui::INSTALLED_APPS
+# ligne de commande : require "partiduo-modeles/cli" et "partiduo-reports/cli"
 ----
 
 L'extension exige la Comptabilité (`depends_on "ACCOUNTING"`) ; elle
 s'active par dossier (`Partiduo::Api::Modules.activate`, écran
-« Modules »), y compris dans un dossier foyer.
+« Modules »), y compris dans un dossier foyer. Le shard dépend de
+`partiduo-modeles` (contrat `Modeles::Api`), mais le manifeste n'exige pas
+l'extension `MODELES` : les documents depuis un modèle ne sont proposés que
+quand elle est active dans le dossier (D-REP-021).
 
 == Développement local
 

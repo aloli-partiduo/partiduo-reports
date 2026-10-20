@@ -1,0 +1,13 @@
+{# SPDX-License-Identifier: AGPL-3.0-or-later. Envoi par courriel des documents d'un listing conservé (D-REP-027) : un message par fiche avec son document en pièce jointe, par le transport de l'instance ; proposé à qui conçoit les rapports quand l'extension MODELES est active, qu'un modèle existe et que l'envoi est configuré. #}{% if mail_url %}<section class="pd-panel" aria-labelledby="rep-mail-title" data-reports-mail>
+  <header><h2 id="rep-mail-title">{% translate "reports_ui.mail.title" %}</h2></header>
+  <form method="post" action="{{ mail_url }}" class="pd-body pd-form" hx-boost="false">{% csrf_input %}
+    <div class="pd-form-grid">
+      <div class="field"><label class="label" for="rep-mail-template">{% translate "reports_ui.document.template" %}</label><div class="select is-fullwidth"><select id="rep-mail-template" name="template">{% for option in document_templates %}<option value="{{ option.value }}"{% if option.selected %} selected{% endif %}>{{ option.label }}</option>{% endfor %}</select></div></div>
+      <div class="field"><label class="label" for="rep-mail-subject">{% translate "reports_ui.mail.subject" %}</label><div class="control"><input class="input" id="rep-mail-subject" name="subject" maxlength="255" required></div></div>
+      <div class="field pd-wide"><label class="label" for="rep-mail-body">{% translate "reports_ui.mail.body" %}</label><div class="control"><textarea class="textarea" id="rep-mail-body" name="body" rows="4" required></textarea></div></div>
+    </div>
+    {% if document_pdf %}<label class="checkbox pd-touch"><input type="checkbox" name="pdf" value="1" checked> {% translate "reports_ui.document.pdf" %}</label>{% endif %}
+    <p class="help">{% translate "reports_ui.mail.help" %}</p>
+    <div class="pd-form-actions"><button class="button is-primary pd-touch" type="submit">{% include "ui/_icon.html" with name="send" %}<span>{% translate "reports_ui.mail.submit" %}</span></button></div>
+  </form>
+</section>{% endif %}

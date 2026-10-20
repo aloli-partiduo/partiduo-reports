@@ -5,10 +5,12 @@
 # `crystal run manage.cr -- <commande>` (`migrate`…).
 require "partiduo-ui-bulma/partiduo_ui"
 require "./src/partiduo-reports"
+require "partiduo-modeles/ui/bulma"
 require "./ui/bulma/bulma"
 require "./config/settings/base"
 require "./config/settings/**"
 require "partiduo/cli"
+require "partiduo-modeles/cli"
 require "./src/partiduo-reports/cli"
 
 Marten.setup

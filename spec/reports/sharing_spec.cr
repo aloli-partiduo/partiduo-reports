@@ -7,7 +7,8 @@ private alias Api = Reports::Api
 
 # Définition exportée par l'application d'origine (format 4) : titres,
 # formule, formule sur codes avec ternaire, poste et contrepartie, liste
-# de postes, TVA (non reprise), période N-1.
+# de postes, TVA par code (non reprise : code propre au dossier d'origine),
+# date d'échéance, opérations rapprochées, période N-1.
 LEGACY_FILE = <<-BIN
   RAPAV;4
   "Test Formule";"Test sur toutes les formules"
@@ -19,6 +20,7 @@ LEGACY_FILE = <<-BIN
   6;LST;"Charges";9;60;15;1
   7;TVA;"TVA";3;70;15;1
   8;OLD;"Ancienne syntaxe";3;80;15;1
+  9;RAP;"Rapprochées";3;90;15;1
   RAPAV_DETAIL
   10;2;;;[70%]*1;;;;1;;;;0
   11;3;;;[70%-S];;;;1;;;;0
@@ -27,6 +29,7 @@ LEGACY_FILE = <<-BIN
   14;6;6;;;;;;6;;1;;0
   15;7;6%;1;;;ACH;1;2;;;;0
   16;8;;;[70%S];;;;1;;;;0
+  17;9;70%;;;;;;5;41;2;;0
   BIN
 
 describe "Partage des définitions (D-REP-014 à D-REP-016)" do
@@ -73,14 +76,15 @@ describe "Partage des définitions (D-REP-014 à D-REP-016)" do
     S.setup
     result = Api.import_legacy(S.designer, LEGACY_FILE).value!
     result.created.should eq(["TESTFORMULE"])
-    result.issues.map(&.key).should eq(["legacy_date_paid", "legacy_vat", "legacy_line"])
+    result.issues.map(&.key).should eq(["legacy_vat", "legacy_line", "legacy_reconciled"])
     report = Api.report(S.designer, Api.reports(S.designer).first.id)
     formulas = report.lines.to_h { |line| {line.code.presence || line.label, line.formula} }
     report.lines.first.kind.should eq("heading1")
     formulas["F70"].should eq("[70%]*1")
     formulas["F70N1"].should eq("[70%-S; span=year; shift=-1]")
     formulas["COMP"].should eq("if($F70 > 50000, 1, 0)")
-    formulas["C411"].should eq("[70%-S; with=41]")
+    formulas["C411"].should eq("[70%-S; with=41; date=due]")
+    formulas["RAP"].should eq("[70%-S; with=41; date=payment]")
     formulas["LST"].should eq("[6%-s]")
     formulas["OLD"].should eq("[70%-S]")
     report.lines.find!(&.label.starts_with?("TVA")).kind.should eq("note")

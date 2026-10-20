@@ -140,10 +140,13 @@ module Reports
           end
           json.field "totals", result.totals.map { |value| decimal(value) }
           json.field "issues" { issues_json(json, result.issues) }
+          json.field "paid", result.paid
         end
       end
     end
 
+    # Un listing conservé avant le filtre « payé / non payé » (D-REP-024)
+    # n'a pas la clé `paid` : toutes les écritures.
     def self.parse_listing(text : String) : Api::ListingResultView
       data = JSON.parse(text)
       columns = data["columns"].as_a.map do |column|
@@ -156,7 +159,7 @@ module Reports
       Api::ListingResultView.new(listing_id: data["listing_id"].as_i64?, code: data["code"].as_s, name: data["name"].as_s,
         date_from: parse_date(data["date_from"]) || Records.today, date_to: parse_date(data["date_to"]) || Records.today,
         columns: columns, rows: rows, totals: data["totals"].as_a.map { |value| parse_decimal(value) },
-        issues: parse_issues(data["issues"]))
+        issues: parse_issues(data["issues"]), paid: data["paid"]?.try(&.as_bool?))
     end
 
     # --- Vues ----------------------------------------------------------------------------

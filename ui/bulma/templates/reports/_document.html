@@ -1,0 +1,13 @@
+{# SPDX-License-Identifier: AGPL-3.0-or-later. Document généré depuis un modèle de partiduo-modeles (D-REP-021) : choix du modèle actif de la sorte, PDF si le serveur sait le produire, document par fiche ou du listing entier ; formulaire GET ordinaire (téléchargement), proposé seulement quand l'extension MODELES est active et qu'un modèle existe. #}{% if document_templates %}<section class="pd-panel" aria-labelledby="rep-document-title" data-reports-document>
+  <header><h2 id="rep-document-title">{% translate "reports_ui.document.title" %}</h2></header>
+  <form method="get" action="{{ path }}" class="pd-body pd-inline-form" hx-boost="false" aria-labelledby="rep-document-title">
+    <input type="hidden" name="format" value="document">{% for item in document_hidden %}<input type="hidden" name="{{ item.name }}" value="{{ item.value }}">{% endfor %}
+    <label class="label" for="rep-document-template">{% translate "reports_ui.document.template" %}</label>
+    <div class="select"><select id="rep-document-template" name="template">{% for option in document_templates %}<option value="{{ option.value }}"{% if option.selected %} selected{% endif %}>{{ option.label }}</option>{% endfor %}</select></div>
+    {% if document_per_card %}<label class="label" for="rep-document-scope">{% translate "reports_ui.document.scope" %}</label>
+    <div class="select"><select id="rep-document-scope" name="per_card"><option value="1">{% translate "reports_ui.document.per_card" %}</option><option value="0">{% translate "reports_ui.document.whole" %}</option></select></div>{% endif %}
+    {% if document_pdf %}<label class="checkbox pd-touch"><input type="checkbox" name="pdf" value="1" checked> {% translate "reports_ui.document.pdf" %}</label>{% endif %}
+    <button class="button is-primary pd-touch" type="submit">{% include "ui/_icon.html" with name="file-text" %}<span>{% translate "reports_ui.document.submit" %}</span></button>
+  </form>
+  <p class="help pd-body pt-0">{% translate "reports_ui.document.help" %}</p>
+</section>{% endif %}

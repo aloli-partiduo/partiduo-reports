@@ -20,15 +20,20 @@ introuvable vaut zéro et s'ajoute aux avertissements (`issues`,
 [cols="1,3",options="header"]
 |===
 |Permission |Ouvre
-|`reports.read` |`reports`, `report`, `run_report`, `report_file`, `report_tags_file`, `check_formula`, `listings`, `listing`, `run_listing`, `listing_file`, `listing_merge_file`, `snapshots`, `snapshot`, `declaration`, `declaration_file`, `declaration_tags_file`, `listing_snapshot`, `listing_snapshot_file`, `starters`
-|`reports.design` |`check_report`, `create_report`, `update_report`, `delete_report`, `copy_report`, `preview_report`, `core_reports`, `import_core_report` (+ `accounting.report.read`), `keep_declaration`, `check_listing`, `create_listing`, `update_listing`, `delete_listing`, `copy_listing`, `preview_listing`, `keep_listing`, `add_to_followup` (+ `followup.action.write`), `export_definitions`, `import_definitions`, `import_legacy`, `install_starter`
+|`reports.read` |`reports`, `report`, `run_report`, `report_file`, `report_document` (+ `modeles.read`), `document_templates`, `check_formula`, `listings`, `listing`, `run_listing`, `listing_file`, `listing_merge_file`, `snapshots`, `snapshot`, `declaration`, `declaration_file`, `declaration_document` (+ `modeles.read`), `listing_snapshot`, `listing_snapshot_file`, `listing_document` (+ `modeles.read`), `starters`
+|`reports.design` |`check_report`, `create_report`, `update_report`, `delete_report`, `copy_report`, `preview_report`, `core_reports`, `import_core_report` (+ `accounting.report.read`), `keep_declaration`, `check_listing`, `create_listing`, `update_listing`, `delete_listing`, `copy_listing`, `preview_listing`, `keep_listing`, `add_to_followup` (+ `followup.action.write`), `mail_listing` (+ `modeles.read`, transport configuré), `export_definitions`, `import_definitions`, `import_legacy`, `install_starter`
 |`reports.admin` |`delete_snapshot`, `import_definitions(…, replace: true)`
 |===
 
-Droits du cœur lus au calcul : `accounting.report.read` (comptes, fiches),
-`accounting.entry.read` (`with=`, `card=`), `accounting.ledger.read`
-(journaux par code), `cards.card.read` (listings, `{QCODE}`),
+Droits du cœur lus au calcul : `accounting.report.read` (comptes, fiches,
+`with=`, `card=` et `vat=` depuis D-REP-022 : `accounting.entry.read` n'est
+plus nécessaire), `accounting.ledger.read` (journaux par code),
+`cards.card.read` (listings, `{QCODE}`, adresses de l'envoi),
 `analytic.plan.read` et `analytic.report.read` (`{{POSTE}}`).
+
+Documents depuis un modèle (D-REP-021) : proposés quand l'extension
+`MODELES` (`partiduo-modeles`) est active ; elle exige `modeles.read` pour
+lire le modèle. Sinon `reports.errors.documents.unavailable`.
 
 == Rapports
 
@@ -53,8 +58,18 @@ Droits du cœur lus au calcul : `accounting.report.read` (comptes, fiches),
   `override.unknown`.
 * `preview_report(actor, ReportInput, RunInput)` — calcul d'une définition
   non enregistrée.
-* `report_file(actor, id, RunInput, format)` — `csv`, `ods`, `pdf` ;
-  `report_tags_file(actor, id, RunInput)` — CSV des balises.
+* `report_file(actor, id, RunInput, format)` — `csv`, `ods`, `pdf` (PDF/A
+  du socle : titre principal en tête de page, niveaux de titre, D-REP-026).
+* `report_document(actor, id, RunInput, template_id = nil, pdf = false) : Result(FileView)`
+  — déclaration générée depuis un modèle de la sorte `report`
+  (`template_id` nul : le défaut de la langue courante) ; le PDF si `pdf`,
+  refusé (`modeles.errors.pdf.unavailable`, `.timeout`, `.failed` sous
+  `pdf`) quand il n'a pas pu être produit. Remplace `report_tags_file`
+  (CSV des balises, retiré).
+* `document_templates(actor, kind) : Array(TemplateOptionView(id, name, format, locale, is_default, pdf))`
+  — modèles actifs de `partiduo-modeles` de la sorte `report` ou
+  `listing` (`DOCUMENT_KINDS`) ; vide si MODELES est inactive ou sans
+  `modeles.read`.
 * `check_formula(actor, text, kind)` — `line`, `column`, `listing`.
 * `core_reports(actor)`, `import_core_report(actor, core_id)` — reprise d'un
   rapport personnalisé de la Comptabilité.
@@ -66,7 +81,20 @@ Droits du cœur lus au calcul : `accounting.report.read` (comptes, fiches),
 * `snapshots(actor, SnapshotQuery(kind, definition_id, limit))`,
   `snapshot(actor, id)`, `declaration(actor, id)`,
   `listing_snapshot(actor, id)`, `declaration_file`,
-  `declaration_tags_file`, `listing_snapshot_file(actor, id, format, merge)`.
+  `listing_snapshot_file(actor, id, format, merge)`.
+* `declaration_document(actor, id, template_id = nil, pdf = false)` —
+  déclaration conservée depuis un modèle (titre et description conservés) ;
+  remplace `declaration_tags_file` (retiré).
+* `listing_document(actor, id, template_id = nil, pdf = false, per_card = true)`
+  — documents d'un listing conservé : un par fiche dans une archive ZIP
+  (500 fiches au plus, `documents.too_many`), ou un pour tout le listing
+  (`per_card: false`).
+* `mail_listing(actor, id, MailInput(subject, body, template_id, pdf)) : Result(MailView(sent, skipped))`
+  — un courriel par fiche, son document joint, par
+  `Partiduo::Api::Mail.deliver` (parti à la validation, journalisé) ;
+  fiches sans adresse ou adresse refusée dans `skipped` (quick codes).
+  Erreurs : `mail.subject_blank`, `mail.body_blank`,
+  `core.errors.mail.not_configured`, `documents.*`, celles du rendu.
 * `delete_snapshot(actor, id)` (`reports.admin`).
 
 == Listings
@@ -80,10 +108,14 @@ Droits du cœur lus au calcul : `accounting.report.read` (comptes, fiches),
   `code.*`, `name.*`, `choice.invalid`, `columns.count`,
   `attribute.blank`, `line.unknown`, `column.unknown`,
   `conditions.count`, `formula.*`.
-* `run_listing(actor, id, ListingRunInput(date_from, date_to)) : Result(ListingResultView)`
-  — une ligne par fiche (`CellView(text, amount)`), totaux des montants.
+* `run_listing(actor, id, ListingRunInput(date_from, date_to, paid)) : Result(ListingResultView)`
+  — une ligne par fiche (`CellView(text, amount)`), totaux des montants ;
+  `paid` (`true`, `false`, `nil`) : filtre « payé / non payé » appliqué aux
+  références de comptes qui ne fixent pas le leur (D-REP-024), rendu dans
+  `ListingResultView#paid` et conservé.
 * `preview_listing`, `listing_file(actor, id, run, format)`,
-  `listing_merge_file(actor, id, run)` (source de publipostage).
+  `listing_merge_file(actor, id, run)` (CSV des codes de colonnes ; le
+  publipostage passe par `listing_document`).
 * `keep_listing(actor, id, run, KeepInput(title, description, card_ids))` —
   fiches retenues (vide : toutes ; `keep.none` si aucune ne correspond).
 * `add_to_followup(actor, snapshot_id, FollowupInput(action_type_id, date, title, comment, remind_on, visible_profile_id)) : Result(Int32)`
@@ -99,3 +131,26 @@ Droits du cœur lus au calcul : `accounting.report.read` (comptes, fiches),
 * `import_legacy(actor, content)` — définition `.bin` de la source legacy
   (`legacy.format`).
 * `starters(actor)`, `install_starter(actor, code)` — définitions fournies.
+
+== Vocabulaire des modèles (`partiduo-modeles`)
+
+Déclaré au chargement par `Modeles::Api.register_vocabulary`
+(`src/reports/services/documents.cr`), affiché sur l'écran des modèles.
+
+Sorte `report` (déclaration) ::
+`declaration` (`titre`, `note`, `rapport`, `code`, `periode`, `debut`,
+`fin`, `date`, `jours`, `mois`, `annees`), `dossier` (`nom`, `tva`,
+`siren`, `rue`, `numero`, `code_postal`, `ville`, `pays`, `telephone`),
+`montants.CODE` (première colonne) et `montants.CODE_COL` (comme les
+balises `<<CODE>>` et `<<CODE_COL>>` de la source legacy), lignes affichées
+`{% for ligne in lignes %}` (`code`, `libelle`, `sorte`, `style`,
+`retrait`, `compte`, `montant`, et un champ par code de colonne).
+
+Sorte `listing` ::
+`listing` (`titre`, `note`, `nom`, `code`, `periode`, `debut`, `fin`,
+`date`), `dossier`, `fiche` (`code`, `nom`, `courriel` : document d'une
+fiche), `colonnes.CODE` (valeurs de la fiche), `totaux.CODE`, fiches
+`{% for ligne in fiches %}` (`code`, `nom`, un champ par code de colonne ;
+document du listing entier).
+
+Montants présentés dans la langue courante, aux décimales du rapport.

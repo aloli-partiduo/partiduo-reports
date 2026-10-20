@@ -14,9 +14,13 @@
 #   copier, importer et exporter les définitions ; conserver une
 #   déclaration ou un listing), `reports.admin` (effacer ce qui est
 #   conservé, remplacer une définition à l'import). Le contrat du cœur
-#   exige en plus ses propres droits : `accounting.report.read`,
-#   `accounting.entry.read` (contrepartie, fiche de l'écriture),
-#   `cards.card.read`, `analytic.report.read`, `followup.action.write`.
+#   exige en plus ses propres droits : `accounting.report.read` (balances,
+#   sommes de lignes, totaux de TVA), `cards.card.read`,
+#   `analytic.report.read`, `followup.action.write` ; `MODELES` exige
+#   `modeles.read` pour les documents depuis un modèle.
+# * Pas de dépendance à `MODELES` : les documents depuis un modèle
+#   (`partiduo-modeles`, dépendance du shard) ne sont proposés que si elle
+#   est active (D-REP-021).
 # * Menu (D6 d'ADR-003) : sous « Éditions » du cœur (`REPORTS`) ; partage
 #   des définitions sous « Paramètres ».
 # * Aucun abonnement : un rapport se calcule à la demande ; une

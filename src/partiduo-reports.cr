@@ -10,5 +10,7 @@
 # applications Marten, et `require "partiduo-reports/cli"` à sa ligne de
 # commande (migrations).
 require "partiduo"
+# Modèles de documents (A-REP-1) : contrat `Modeles::Api`.
+require "partiduo-modeles"
 
 require "./reports/app"

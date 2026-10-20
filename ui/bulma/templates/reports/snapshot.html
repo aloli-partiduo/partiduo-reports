@@ -1,4 +1,4 @@
-{# SPDX-License-Identifier: AGPL-3.0-or-later. Déclaration ou listing conservé (D-REP-009) : copie figée, définition d'origine, auteur, exports, balises ou source de publipostage, inscription au suivi d'un listing. #}{% extend "ui/base.html" %}
+{# SPDX-License-Identifier: AGPL-3.0-or-later. Déclaration ou listing conservé (D-REP-009) : copie figée, définition d'origine, auteur, exports, documents générés depuis un modèle et leur envoi par courriel, inscription au suivi d'un listing. #}{% extend "ui/base.html" %}
 {% block title %}{{ title }}{% endblock title %}
 {% block scripts %}<link rel="stylesheet" href="{% asset 'reports/css/reports.css' %}">{% endblock scripts %}
 {% block crumbs %}{% include "ui/_crumbs.html" %}{% endblock crumbs %}
@@ -20,4 +20,6 @@
   {% if run_lines %}{% include "reports/_run.html" %}{% endif %}
   {% if listing_columns %}{% include "reports/_listing.html" %}{% endif %}
 </section>
+{% include "reports/_document.html" %}
+{% include "reports/_mail.html" %}
 {% endblock content %}

@@ -116,10 +116,85 @@ nl:
       category_unknown: "Categorie van fiches %{code} niet gevonden in dit dossier: lege lijst."
       cards_truncated: "Meer dan %{max} fiches: lijst afgekapt."
       legacy_line: "Regel „%{line}” niet omgezet (%{formula}): als opmerking overgenomen, na te kijken."
-      legacy_date_paid: "Regel „%{line}”: de filter op betaal- of vervaldatum wordt niet overgenomen (boekingsdatum)."
-      legacy_vat: "Regel „%{line}”: het totaal per btw-code wordt niet overgenomen (zie de btw-aangiften)."
-      legacy_reconciled: "Regel „%{line}”: het totaal van de afgepunte verrichtingen wordt niet overgenomen."
+      legacy_vat: "Regel \"%{line}\": de btw-code van de legacy-bron is niet overdraagbaar: detail niet overgenomen, te herschrijven met vat=CODE (zie de btw-codes van het dossier)."
+      legacy_reconciled: "Regel \"%{line}\": afgepunte verrichtingen worden op hun betaaldatum (afpunting) overgenomen; na te kijken."
+      paid_card: "De filter betaald / onbetaald geldt niet voor een fiche ({…}): gebruik een rekeningverwijzing met card= (bijvoorbeeld [411%-s; card=*])."
+    modeles:
+      kinds:
+        report: "Aangifte van een rapport"
+        listing: "Document van een lijst"
+      vocabulary:
+        groups:
+          declaration: "De aangifte"
+          dossier: "Het dossier"
+          montants: "Bedragen van de regels"
+          lignes: "De getoonde regels (lijst)"
+          listing: "De lijst"
+          fiche: "De fiche van het document"
+          colonnes: "Kolommen van de fiche"
+          totaux: "Totalen van de kolommen"
+          fiches: "Alle fiches (lijst)"
+        declaration:
+          titre: "Titel (naam en periode, of bewaarde titel)"
+          note: "Bewaarde beschrijving"
+          rapport: "Naam van het rapport"
+          code: "Code van het rapport"
+          periode: "Periode (van … tot …)"
+          debut: "Begindatum"
+          fin: "Einddatum"
+          date: "Datum van vandaag"
+          jours: "Aantal dagen van de periode"
+          mois: "Aantal maanden van de periode"
+          annees: "Aantal jaren van de periode"
+        dossier:
+          nom: "Naam van de onderneming"
+          tva: "Btw-nummer"
+          siren: "SIREN"
+          rue: "Straat"
+          numero: "Nummer"
+          code_postal: "Postcode"
+          ville: "Gemeente"
+          pays: "Land"
+          telephone: "Telefoon"
+        montants:
+          _any: "Bedrag van regel CODE in de eerste kolom; CODE_COL in kolom COL (bijvoorbeeld CA_N1)"
+        lignes:
+          code: "Code van de regel"
+          libelle: "Omschrijving (rekening en naam voor een rekeninglijst)"
+          sorte: "Soort regel (formula, title, heading1…)"
+          style: "Stijl (normal, bold, total)"
+          retrait: "Inspringing (0 tot 5)"
+          compte: "Rekening van een regel uit een rekeninglijst"
+          montant: "Bedrag van de eerste kolom"
+          _any: "Bedrag van de kolom met code CODE (bijvoorbeeld N, N1, P1)"
+        listing:
+          titre: "Bewaarde titel"
+          note: "Bewaarde beschrijving"
+          nom: "Naam van de lijst"
+          code: "Code van de lijst"
+          periode: "Periode (van … tot …)"
+          debut: "Begindatum"
+          fin: "Einddatum"
+          date: "Datum van vandaag"
+        fiche:
+          code: "Quick code van de fiche"
+          nom: "Naam van de fiche"
+          courriel: "E-mailadres (verzending per e-mail)"
+        colonnes:
+          _any: "Waarde van de kolom met code CODE voor de fiche van het document"
+        totaux:
+          _any: "Totaal van de bedragkolom CODE"
+        fiches:
+          code: "Quick code"
+          nom: "Naam"
+          _any: "Waarde van de kolom met code CODE"
     errors:
+      documents:
+        unavailable: "Documenten uit een sjabloon vereisen dat de extensie „Documentsjablonen” actief is."
+        too_many: "Hoogstens %{max} fiches per aanvraag."
+      mail:
+        subject_blank: "Het onderwerp is verplicht."
+        body_blank: "Het bericht is verplicht."
       code:
         invalid: "Code: een letter, dan letters, cijfers of „_”, hoogstens 20 tekens."
         taken: "Deze code is al in gebruik."

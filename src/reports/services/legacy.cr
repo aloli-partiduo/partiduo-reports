@@ -5,10 +5,11 @@ require "csv"
 module Reports
   # Import d'une définition de rapport exportée par l'application d'origine
   # (fichier `.bin` : CSV `;`, en-tête `RAPAV;<version>`, D-REP-015) :
-  # lignes et détails convertis dans le langage de l'extension ; ce qui ne
-  # se convertit pas (TVA par code, opérations rapprochées, date de
-  # paiement ou d'échéance, formule illisible) devient une remarque et un
-  # avertissement. Interne.
+  # lignes et détails convertis dans le langage de l'extension ; la date de
+  # paiement ou d'échéance devient l'option `date=` des références de
+  # comptes, les opérations rapprochées une référence à la date de paiement
+  # (D-REP-025) ; ce qui ne se convertit pas (TVA par code de la source,
+  # formule illisible) devient une remarque et un avertissement. Interne.
   module Legacy
     alias Formula = Reports::Formula
 
@@ -124,24 +125,35 @@ module Reports
     # d'équivalent.
     private def self.detail_formula(detail : Detail, codes : Hash(String, String), issues : Array(Api::IssueView),
                                     label : String) : String?
-      if detail.date_paid.in?("1", "2")
-        issues << Api::IssueView.new("legacy_date_paid", {"line" => label})
-      end
-      case detail.type
-      when "1"
-        convert_formula(detail.formula.gsub(/\s*FROM\s*=\s*\d{1,2}\.\d{4}\s*\z/, ""))
-      when "3"
-        compute = detail.formula.gsub(/\[([A-Za-z0-9_]+)\]/) do |_, match|
-          "$#{codes[match[1].upcase]? || match[1].upcase}"
-        end
-        convert_formula(compute)
-      when "4", "6"
-        account_formula(detail)
-      else
-        key = {"2" => "legacy_vat", "5" => "legacy_reconciled"}[detail.type]?
-        issues << Api::IssueView.new(key, {"line" => label}) if key
-        nil
-      end
+      formula = case detail.type
+                when "1"
+                  convert_formula(detail.formula.gsub(/\s*FROM\s*=\s*\d{1,2}\.\d{4}\s*\z/, ""))
+                when "3"
+                  compute = detail.formula.gsub(/\[([A-Za-z0-9_]+)\]/) do |_, match|
+                    "$#{codes[match[1].upcase]? || match[1].upcase}"
+                  end
+                  return convert_formula(compute)
+                when "4", "6"
+                  account_formula(detail)
+                when "5"
+                  # Opérations rapprochées : approchées par la date de
+                  # paiement (lettrage) dans la période.
+                  issues << Api::IssueView.new("legacy_reconciled", {"line" => label})
+                  account_formula(detail).try { |text| account_options(text, "date=payment") }
+                else
+                  issues << Api::IssueView.new("legacy_vat", {"line" => label}) if detail.type == "2"
+                  nil
+                end
+      basis = DATES[detail.date_paid]?
+      formula && basis && detail.type != "5" ? account_options(formula, "date=#{basis}") : formula
+    end
+
+    # Date de la source (`date_paid`) : 1 paiement, 2 échéance.
+    DATES = {"1" => "payment", "2" => "due"}
+
+    # Ajoute des options aux seules références de comptes.
+    def self.account_options(formula : String, options : String) : String
+      formula.gsub(/\[[^\[\]]+\]/) { |reference| "#{reference[0, reference.size - 1]}; #{options}]" }
     end
 
     # Poste (motif), contrepartie, sens du total : référence de comptes.

@@ -245,7 +245,8 @@ module Reports
     end
 
     # `/ext/REPORTS/reports/<id>` : calcul d'un rapport sur une période,
-    # exports (`format` : `csv`, `ods`, `pdf`, `tags`).
+    # exports (`format` : `csv`, `ods`, `pdf`), déclaration générée depuis
+    # un modèle (`format=document`, D-REP-021).
     class ReportRunHandler < Handler
       def get
         id = id_param
@@ -256,7 +257,9 @@ module Reports
         back = Ui.url("report", id: id)
         case query("format")
         when "csv", "ods", "pdf" then return file_or_back(Api.report_file(actor, id, input, query("format")), back)
-        when "tags"              then return file_or_back(Api.report_tags_file(actor, id, input), back)
+        when "document"
+          template, pdf = document_choice
+          return file_or_back(Api.report_document(actor, id, input, template, pdf), back)
         end
         result = Api.run_report(actor, id, input)
         context = {
@@ -272,7 +275,8 @@ module Reports
           params = URI::Params.encode({"from" => iso_day(view.date_from), "to" => iso_day(view.date_to), "step" => step})
           context["from"] = iso_day(view.date_from)
           context["to"] = iso_day(view.date_to)
-          context["exports"] = %w[csv ods pdf tags].map { |format| Ui.row({"url" => "#{back}?#{params}&format=#{format}", "label" => I18n.t("reports_ui.exports.#{format}")}) }
+          context["exports"] = %w[csv ods pdf].map { |format| Ui.row({"url" => "#{back}?#{params}&format=#{format}", "label" => I18n.t("reports_ui.exports.#{format}")}) }
+          context.merge!(document_form(Api::DOCUMENT_KINDS[0], {"from" => iso_day(view.date_from), "to" => iso_day(view.date_to), "step" => step}))
           context["keep_url"] = "#{Ui.url("report_keep", id: id)}?#{params}" if can_design?
         else
           context["errors"] = result.errors.map { |error| fmt.message(error) }

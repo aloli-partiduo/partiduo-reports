@@ -21,7 +21,13 @@ private def run_input : Api::RunInput
   Api::RunInput.new(date_from: S.date("2026-01-01"), date_to: S.date("2026-12-31"))
 end
 
-describe "Déclarations conservées et exports (D-REP-009, D-REP-010, D-REP-013)" do
+# Pages d'un PDF : objets `/Type /Page` (les octets binaires sont lus en
+# Latin-1 pour la recherche).
+private def pages(pdf : Bytes) : Int32
+  String.new(pdf, "ISO-8859-1").scan(%r{/Type\s*/Page\b}).size
+end
+
+describe "Déclarations conservées, exports et documents (D-REP-009, D-REP-013, D-REP-021, D-REP-026)" do
   it "conserve une déclaration révisée, la relit telle quelle même si la définition change, puis l'efface" do
     report = sales_report
     run = run_input.copy_with(overrides: [Api::Override.new("TVA", "N", S.d("250"))])
@@ -59,16 +65,56 @@ describe "Déclarations conservées et exports (D-REP-009, D-REP-010, D-REP-013)
     String.new(pdf.content[0, 5]).should eq("%PDF-")
   end
 
-  it "fournit les balises d'une déclaration comme source de publipostage" do
+  it "génère la déclaration depuis un modèle de partiduo-modeles, à la place du CSV des balises (D-REP-021)" do
     report = sales_report
+    S.modeles_template("report", <<-MD)
+      # {{ declaration.titre }}
+
+      {{ dossier.nom }} — du {{ declaration.debut }} au {{ declaration.fin }}
+
+      CA {{ montants.CA }} ; total {{ montants.TOTAL }}
+
+      {% for ligne in lignes %}{{ ligne.code }}={{ ligne.montant }}|{{ ligne.N }};{% endfor %}
+      MD
     kept = Api.keep_declaration(S.designer, report.id, run_input, Api::KeepInput.new(title: "Déclaration 2026")).value!
-    csv = String.new(Api.declaration_tags_file(S.designer, kept.summary.id).value!.content)
-    header, values = csv.lchop('﻿').lines
-    tags = header.split(';').zip(values.split(';')).to_h
-    tags["CA"].should eq("1234.50")
-    tags["TOTAL"].should eq("1481.40")
-    tags["TITRE"].should eq("Déclaration 2026")
-    tags["NAME"].should eq("Atelier Brunet SARL")
-    tags["START_DATE"].should eq("01/01/2026")
+    amount = ->(text : String) { Reports::Numbers.amount(S.d(text), 2) }
+    file = Api.declaration_document(S.writer, kept.summary.id).value!
+    file.content_type.should eq("text/markdown")
+    text = String.new(file.content)
+    text.should contain("# Déclaration 2026")
+    text.should contain("Atelier Brunet SARL — du 01/01/2026 au 31/12/2026")
+    text.should contain("CA #{amount.call("1234.50")} ; total #{amount.call("1481.40")}")
+    text.should contain("CA=#{amount.call("1234.50")}|#{amount.call("1234.50")};")
+    # Le rapport calculé, sans conservation.
+    run_file = Api.report_document(S.writer, report.id, run_input).value!
+    String.new(run_file.content).should contain("# Ventes — 01/01/2026 – 31/12/2026")
+    # PDF demandé sans convertisseur sur ce serveur : refus propre.
+    Api.report_document(S.writer, report.id, run_input, pdf: true).error_keys.should eq(["modeles.errors.pdf.unavailable"])
+    # modeles.read est exigé par l'extension des modèles.
+    expect_raises(Partiduo::Api::Forbidden) { Api.report_document(S.designer, report.id, run_input) }
+    Api.document_templates(S.designer, "report").should be_empty
+    Api.document_templates(S.writer, "report").map(&.name).should eq(["Modèle report"])
+  end
+
+  it "ne propose aucun document quand l'extension des modèles est inactive" do
+    report = sales_report
+    Api.document_templates(S.writer, "report").should be_empty
+    Api.report_document(S.writer, report.id, run_input).error_keys.should eq(["reports.errors.documents.unavailable"])
+  end
+
+  it "met chaque titre principal sur une nouvelle page et donne leur niveau aux titres dans le PDF (D-REP-026)" do
+    report = sales_report
+    titled = S.report(Api::ReportInput.new(code: "DEUX", name: "Deux parties", lines: [
+      Api::LineInput.new(label: "Première partie", kind: "title"), S.line("A", "[70%-S]"),
+      Api::LineInput.new(label: "Seconde partie", kind: "title"), Api::LineInput.new(label: "Détail", kind: "heading2"),
+      S.line("B", "[4457%-S]"),
+    ]))
+    sheet = Reports::Sheets.run_sheet(S.run(titled.id))
+    sheet.rows.map { |row| {row.style, row.level, row.page_break} }.should eq([
+      {"heading", 1, true}, {"line", 0, false}, {"heading", 1, true}, {"heading", 2, false}, {"line", 0, false},
+    ])
+    pdf = Api.report_file(S.designer, titled.id, run_input, "pdf").value!.content
+    pages(pdf).should eq(2)
+    pages(Api.report_file(S.designer, report.id, run_input, "pdf").value!.content).should eq(1)
   end
 end

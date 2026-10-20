@@ -48,7 +48,8 @@ module Reports
         columns[index].amount? ? rows.sum(ZERO) { |row| row.cells[index].amount || ZERO } : nil
       end
       Api::ListingResultView.new(listing_id: @listing.id, code: @listing.code, name: @listing.name, date_from: range.from,
-        date_to: range.to, columns: result_columns, rows: shown, totals: totals, issues: @sources.issues)
+        date_to: range.to, columns: result_columns, rows: shown, totals: totals, issues: @sources.issues,
+        paid: @sources.default_paid)
     end
 
     # --- Fiches --------------------------------------------------------------------------

@@ -66,6 +66,7 @@ module Reports
       path "/archive/<id:int>", Reports::Ui::SnapshotHandler, name: "snapshot"
       path "/archive/<id:int>/delete", Reports::Ui::SnapshotDeleteHandler, name: "snapshot_delete"
       path "/archive/<id:int>/followup", Reports::Ui::FollowupHandler, name: "snapshot_followup"
+      path "/archive/<id:int>/mail", Reports::Ui::SnapshotMailHandler, name: "snapshot_mail"
       path "/sharing", Reports::Ui::SharingHandler, name: "sharing"
       path "/sharing/export", Reports::Ui::SharingExportHandler, name: "sharing_export"
       path "/sharing/import", Reports::Ui::SharingImportHandler, name: "sharing_import"
@@ -78,7 +79,7 @@ module Reports
     # du cœur (éditions, fiches, analytique, suivi).
     DESIGN_ROUTES = %w[report_new report_row report_preview core_reports report_edit report_copy report_delete
       report_keep listing_new listing_row listing_preview listing_edit listing_copy listing_delete listing_keep
-      snapshot_followup sharing sharing_export sharing_import starter]
+      snapshot_followup snapshot_mail sharing sharing_export sharing_import starter]
     ADMIN_ROUTES = %w[snapshot_delete]
   end
 end

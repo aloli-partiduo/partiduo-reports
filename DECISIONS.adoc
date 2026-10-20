@@ -384,10 +384,138 @@ comparent déjà estimé et réel.
 rapport se calcule à la demande, une déclaration conservée est une copie
 figée qui n'a pas à suivre les écritures.
 
+=== D-REP-021 — Documents depuis un modèle de `partiduo-modeles` (20 octobre 2026)
+
+*Contexte.* A-REP-1 est réalisé dans `partiduo-modeles` 0.1.4 (D-MOD-018 à
+D-MOD-021) : une extension déclare ses sortes de modèles et fait rendre un
+modèle avec ses propres données (`Modeles::Api.render_data`). Le
+contournement de D-REP-010 et D-REP-012 (CSV des balises d'une
+déclaration, source de publipostage pour un traitement de texte) n'a plus
+de raison d'être.
+
+*Choix.*
+
+* Nouvelle dépendance du shard : `partiduo-modeles` (GitHub, branche
+  `development`). Le manifeste n'exige *pas* `MODELES` : les rapports
+  restent utiles sans elle ; les documents ne sont proposés (écrans,
+  `document_templates`) que si elle est active et que l'utilisateur a
+  `modeles.read`, sinon `reports.errors.documents.unavailable`.
+* Deux sortes déclarées au chargement (`Reports::Documents`) : `report`
+  (objets `declaration`, `dossier`, `montants.CODE` et
+  `montants.CODE_COL` comme les balises `<<CODE>>`/`<<CODE_COL>>` de la
+  source legacy, lignes affichées) et `listing` (`listing`, `dossier`,
+  `fiche`, `colonnes.CODE`, `totaux.CODE`, fiches en lignes). Libellés du
+  vocabulaire fournis ici (`reports.modeles.*`), affichés par l'écran de
+  MODELES.
+* Contrat : `report_document` (rapport calculé), `declaration_document`
+  (déclaration conservée, titre et description compris),
+  `listing_document` (listing conservé : un document par fiche dans une
+  archive ZIP, 500 fiches au plus, ou un pour tout le listing),
+  `document_templates`. Le PDF demandé et non produit (pas de
+  convertisseur, délai, échec) est un refus propre, avec la clé de
+  MODELES (`modeles.errors.pdf.*`) : l'utilisateur relance sans PDF.
+* Montants présentés dans la langue courante (`Numbers.amount`) : MODELES
+  ne fait que les échapper selon le format du modèle.
+* *Retiré* : `report_tags_file`, `declaration_tags_file` et l'export
+  « Balises (publipostage) » des écrans (`Sheets.merge_run`). *Gardé* :
+  le CSV d'un listing à en-tête des codes (`listing_merge_file`,
+  `listing_snapshot_file(merge: true)`), qui est aussi l'export CSV de la
+  source legacy (D-REP-002, « porté ») ; il n'est plus présenté comme la
+  source du publipostage.
+
+*Données.* Aucune table ne change ; les copies figées existantes se
+rendent telles quelles. *Droits* : `reports.read` pour générer (comme
+calculer et exporter), `modeles.read` contrôlé par MODELES.
+
+*Alternative écartée.* `depends_on "MODELES"` : imposerait une extension
+de mise en page à tout dossier qui veut un rapport.
+
+=== D-REP-022 — `with=` et `card=` par les sommes du cœur (20 octobre 2026)
+
+*Choix.* `Accounting.line_sums` (A-REP-3, D-AMD-012) remplace la lecture
+page par page de 20 000 écritures au plus (D-REP-006) : mêmes critères
+(écritures qui portent une ligne de la contrepartie ou de la fiche),
+mêmes journaux (ceux de l'acteur, filtrés par `ledger=` et
+`ledger_kind=`), écritures annulées comprises comme avant. Un spec compare
+les deux calculs sur des ventes, un avoir et une écriture diverse :
+totaux identiques. La seule différence est voulue : au-delà de 20 000
+écritures, l'ancien calcul était tronqué (avertissement `scan_truncated`,
+dont la traduction reste pour les copies figées qui le portent) ; le
+nouveau est complet.
+
+*Droit.* `line_sums` exige `accounting.report.read` au lieu de
+`accounting.entry.read` : un lecteur des éditions sans accès aux écritures
+voit désormais ces montants (ce sont des totaux, comme la balance).
+
+=== D-REP-023 — Détail par code de TVA (20 octobre 2026)
+
+*Contexte.* « Poste et code de TVA » de la source legacy était refusé
+(D-REP-002, A-REP-5) ; `Accounting.vat_totals` (D-AMD-013) le permet.
+
+*Choix.* Options de référence de comptes `vat=CODE,…` (ou `vat=*`) et
+`vat_part=base|tax|total` (base par défaut ; `total` : base et TVA, le
+« TVA + poste » de la source). Montants signés débit − crédit par compte ;
+avec `-d` et `-c`, leurs parties positive et négative. Interdit avec
+`with=` et `card=` (le cœur n'a pas ce croisement). *Import legacy* : le
+code de TVA d'un détail est un identifiant propre au dossier d'origine,
+non transposable ; le détail reste non repris, avec un avertissement qui
+indique de le réécrire avec `vat=`.
+
+=== D-REP-024 — Date de paiement ou d'échéance, payé / non payé (20 octobre 2026)
+
+*Choix.* Options `date=operation|payment|due` et `paid=yes|no` des
+références de comptes, transmises à `TrialBalanceQuery`, `LineSumQuery` et
+`VatTotalsQuery` (D-AMD-014). Le listing reçoit le filtre de la source
+legacy « toutes / payées / non payées » (`ListingRunInput#paid`), appliqué
+aux références de comptes qui ne fixent pas le leur, montré à l'écran et
+conservé dans la copie figée (clé `paid` du JSON ; une copie antérieure
+sans la clé vaut « toutes »).
+
+*Limite.* La balance des tiers (`{QCODE}`, `{*}`) et l'analytique n'ont
+pas ces critères au contrat : les options y sont refusées, et le filtre du
+listing laisse un avertissement (`paid_card`) qui conseille
+`[41%-s; card=*; paid=no]`. *Import legacy* : `date_paid` 1 (paiement) et
+2 (échéance) deviennent `date=payment` et `date=due` sur les références de
+comptes du détail, au lieu d'un avertissement.
+
+=== D-REP-025 — Opérations rapprochées de la source legacy (20 octobre 2026)
+
+*Choix.* Le détail « opérations rapprochées » (type 5 : poste, contrepartie,
+opérations liées à une opération de la période sur un compte de banque)
+s'importe en `[poste-mode; with=contrepartie; date=payment]` : les
+opérations dont le paiement (lettrage) tombe dans la période. C'est une
+approche, pas le même calcul (le rapprochement bancaire n'existe pas dans
+tous les dossiers, D-AMD-014) : l'avertissement `legacy_reconciled` le dit.
+
+=== D-REP-026 — PDF : saut de page et niveaux de titre (20 octobre 2026)
+
+*Choix.* `TableRowInput#level` et le style `page_break` (A-REP-4,
+D-AMD-004) : un titre principal (`title`) commence une nouvelle page,
+comme dans la source legacy (sans effet en tête de document), au
+niveau 1 ; `heading1` à `heading3` aux niveaux 1 à 3. CSV et ODS ne
+changent pas.
+
+=== D-REP-027 — Envoi des documents d'un listing par courriel (20 octobre 2026)
+
+*Contexte.* « Envoi par courriel des documents » était refusé faute de
+contrat (A-REP-2) ; `Partiduo::Api::Mail.deliver` (D-AMD-025) l'apporte.
+
+*Choix.* `mail_listing(actor, snapshot_id, MailInput)` : pour chaque fiche
+d'un listing conservé, son document (sorte `listing`) en pièce jointe, à
+l'adresse électronique de la fiche, sujet et message saisis, au nom de la
+pièce `REPORTS`. Expéditeur imposé par le dossier, envoi à la validation,
+journal du socle. Tout ou rien pour le rendu (un modèle refusé n'envoie
+rien) ; les fiches sans adresse ou dont l'adresse est refusée sont
+écartées et nommées. Droit : `reports.design` (comme l'inscription au
+suivi), en plus de `modeles.read` ; proposé à l'écran seulement quand le
+transport de l'instance est configuré.
+
 == Amendements proposés
 
 À soumettre à l'utilisateur ; l'extension les contourne sans modifier
-`partiduo-app` ni `partiduo-modeles`.
+`partiduo-app` ni `partiduo-modeles`. Adoptés le 13 octobre 2026 (ADR-003,
+« Amendements adoptés le 13 octobre 2026 ») ; tous réalisés et branchés le
+20 octobre 2026 (D-REP-021 à D-REP-027).
 
 A-REP-1 — Rendu de modèle à partir de données libres (`partiduo-modeles`, ADR-010)::
   `Modeles::Api.render_data(actor, template_id, kind, values : Hash(String, String), rows : Array(Hash(String, String)), pdf : Bool)`
@@ -398,6 +526,9 @@ A-REP-1 — Rendu de modèle à partir de données libres (`partiduo-modeles`, A
   la déclaration générée et le publipostage par fiche de la source legacy.
   Contournement : CSV des balises et source de publipostage (D-REP-010,
   D-REP-012).
+  *Réalisé le 20 octobre 2026* dans `partiduo-modeles` 0.1.4
+  (`render_data`, `register_vocabulary`, dépendance d'`INVOICING` retirée) ;
+  branché ici : D-REP-021.
 
 A-REP-2 — Envoi de courriels par une extension (socle)::
   `Partiduo::Api::Mail.deliver(actor, MessageInput)` (destinataire,
@@ -405,6 +536,8 @@ A-REP-2 — Envoi de courriels par une extension (socle)::
   après validation (`Events.after_commit`) et journalisé, pour envoyer les
   documents d'un listing. Contournement : aucun envoi ; publipostage et
   inscription au suivi.
+  *Réalisé le 20 octobre 2026* dans le cœur (D-AMD-025) ; branché ici :
+  D-REP-027.
 
 A-REP-3 — Sommes de lignes d'écritures par critère (Comptabilité)::
   `Partiduo::Api::Accounting.line_sums(actor, LineSumQuery(account, account_prefix, counterpart_prefix, card, ledger_ids, date_from, date_to))`
@@ -412,22 +545,30 @@ A-REP-3 — Sommes de lignes d'écritures par critère (Comptabilité)::
   d'affaires par fiche » sans relire les écritures. Contournement : lecture
   paginée par `entries`, 20 000 écritures au plus par référence et période
   (D-REP-006).
+  *Réalisé le 20 octobre 2026* dans le cœur (D-AMD-012) ; branché ici :
+  D-REP-022 (lecture paginée retirée).
 
 A-REP-4 — PDF neutre : saut de page et niveaux de titre (socle)::
   Style de ligne `page_break` et niveau de titre (`heading` 1 à 3) dans
   `Partiduo::Api::Core::TableRowInput`. Contournement : titres en gras sans
   saut de page.
+  *Réalisé le 20 octobre 2026* dans le cœur (D-AMD-004) ; branché ici :
+  D-REP-026.
 
 A-REP-5 — Totaux par code de TVA (Comptabilité)::
   `Accounting.vat_totals(actor, query)` : base et TVA par taux, compte,
   type de journal et période, pour le détail « poste et code de TVA » de la
   source legacy. Contournement : refusé ici ; les déclarations de TVA du
   cœur portent ces totaux.
+  *Réalisé le 20 octobre 2026* dans le cœur (D-AMD-013) ; branché ici :
+  D-REP-023.
 
 A-REP-6 — Critère de date de paiement ou d'échéance (Comptabilité)::
   `date_basis` (`operation`, `payment`, `due`) et filtre « payé / non
   payé » dans `TrialBalanceQuery` et `EntryQuery`, pour les détails
   « opérations rapprochées » et la TVA sur les encaissements. Contournement :
   refusé ici, avertissement à l'import legacy.
+  *Réalisé le 20 octobre 2026* dans le cœur (D-AMD-014) ; branché ici :
+  D-REP-024, D-REP-025.
 
 Aucun nouvel événement n'est demandé à ADR-003 D7.

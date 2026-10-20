@@ -215,13 +215,18 @@ module Reports
 
     # `/ext/REPORTS/listings/<id>` : calcul sur une période, fiches à
     # cocher pour la conservation, exports (`format` : `csv`, `ods`, `pdf`,
-    # `merge`).
+    # `merge`) ; filtre « payé / non payé » (`paid` : `yes`, `no`,
+    # D-REP-024).
     class ListingRunHandler < Handler
+      # Valeurs du filtre « payé / non payé ».
+      PAID = {"yes" => true, "no" => false}
+
       def get
         id = id_param
         listing = Api.listing(actor, id)
         from, to = run_dates
-        input = Api::ListingRunInput.new(from, to)
+        paid = PAID[query("paid")]?
+        input = Api::ListingRunInput.new(from, to, paid)
         back = Ui.url("listing", id: id)
         case query("format")
         when "csv", "ods", "pdf" then return file_or_back(Api.listing_file(actor, id, input, query("format")), back)
@@ -240,9 +245,11 @@ module Reports
         } of String => Ui::Value
         if view = result.value?
           context.merge!(ListingPresenter.context(view, fmt, selectable: can_design?))
-          dates = URI::Params.encode({"from" => view.date_from.to_s("%Y-%m-%d"), "to" => view.date_to.to_s("%Y-%m-%d")})
+          dates = URI::Params.encode({"from" => view.date_from.to_s("%Y-%m-%d"), "to" => view.date_to.to_s("%Y-%m-%d"),
+                                      "paid" => query("paid")})
           context["from"] = view.date_from.to_s("%Y-%m-%d")
           context["to"] = view.date_to.to_s("%Y-%m-%d")
+          context["paid"] = PAID.has_key?(query("paid")) ? query("paid") : ""
           context["exports"] = %w[csv ods pdf merge].map { |format| Ui.row({"url" => "#{back}?#{dates}&format=#{format}", "label" => I18n.t("reports_ui.exports.#{format}")}) }
           context["keep_url"] = Ui.url("listing_keep", id: id) if can_design?
         else
@@ -264,7 +271,7 @@ module Reports
         id = id_param
         values = request.data.fetch_all("card_ids")
         ids = values ? values.compact_map(&.to_s.to_i64?) : [] of Int64
-        run = Api::ListingRunInput.new(date_field("from"), date_field("to"))
+        run = Api::ListingRunInput.new(date_field("from"), date_field("to"), ListingRunHandler::PAID[field("paid")]?)
         result = Api.keep_listing(actor, id, run, Api::KeepInput.new(title: field("title"), description: field("description"), card_ids: ids))
         if kept = result.value?
           flash["success"] = I18n.t("reports_ui.keep.saved", title: kept.summary.title)

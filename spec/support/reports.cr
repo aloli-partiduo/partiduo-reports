@@ -95,6 +95,25 @@ module Reports
       run.lines.find! { |line| line.code == code }.values[column]
     end
 
+    # Active l'extension des modèles de documents et y dépose (puis active,
+    # et désigne par défaut en français) un modèle Markdown de la sorte
+    # `kind` (`report` ou `listing`).
+    def self.modeles_template(kind : String, content : String, format : String = "markdown") : Int64
+      Partiduo::Api::Modules.activate(system, "MODELES").value! unless Partiduo::Modules.active?("MODELES")
+      upload = Modeles::Api.upload(system, Modeles::Api::UploadInput.new(filename: "modele.#{Modeles::Config::EXTENSIONS[format]}",
+        content: content.to_slice, name: "Modèle #{kind}", kind: kind, locale: "fr"))
+      raise "modèle refusé : #{upload.errors.map(&.key).join(", ")}" if upload.failure?
+      id = upload.value!.id
+      Modeles::Api.activate(system, id).value!
+      Modeles::Api.set_default(system, id).value!
+      id
+    end
+
+    # Concepteur qui lit aussi les modèles de documents.
+    def self.writer : Partiduo::Api::Actor
+      actor("alice@example.com", [Api::READ, Api::DESIGN, Api::ADMIN, Modeles::Api::READ] + CORE_PERMISSIONS)
+    end
+
     def self.line(code : String, formula : String, kind : String = "formula", label : String? = nil) : Api::LineInput
       Api::LineInput.new(label: label || code, kind: kind, code: code, formula: formula)
     end

@@ -8,11 +8,13 @@ require "spec"
 # métier de l'extension, son interface Bulma, puis les réglages.
 require "partiduo-ui-bulma/partiduo_ui"
 require "../src/partiduo-reports"
+require "partiduo-modeles/ui/bulma"
 require "../ui/bulma/bulma"
 require "../config/settings/base"
 require "../config/settings/**"
 # Migrations du cœur et de l'extension.
 require "partiduo/cli"
+require "partiduo-modeles/cli"
 require "../src/partiduo-reports/cli"
 
 require "marten/spec"
