@@ -95,7 +95,10 @@ describe "Amendements du contrat réalisés le 20 octobre 2026" do
     ]))
     Api.check_formula(S.designer, "[70%; date=hier]").error_keys.should eq(["reports.errors.formula.option_value"])
     Api.check_formula(S.designer, "[70%; paid=peut-etre]").error_keys.should eq(["reports.errors.formula.option_value"])
-    Api.check_formula(S.designer, "{MOREL; paid=no}").error_keys.should eq(["reports.errors.formula.option"])
+    # Fiche : date et « payé / non payé » admis (cœur 0.18.0, D-REP-028), la TVA non.
+    Api.check_formula(S.designer, "{MOREL; paid=no}").success?.should be_true
+    Api.check_formula(S.designer, "{MOREL-s; date=payment}").success?.should be_true
+    Api.check_formula(S.designer, "{MOREL; vat=*}").error_keys.should eq(["reports.errors.formula.option"])
     Api.check_formula(S.designer, "{{P; date=due}}").error_keys.should eq(["reports.errors.formula.option"])
     year = S.run(report.id)
     S.amount(year, "ALL").should eq(S.d("1690"))
@@ -126,8 +129,12 @@ describe "Amendements du contrat réalisés le 20 octobre 2026" do
     total.call(all).should eq(S.d("1650"))
     total.call(unpaid).should eq(S.d("1650"))
     unpaid.paid.should be_false
-    unpaid.issues.map(&.key).should contain("paid_card")
-    all.issues.map(&.key).should_not contain("paid_card")
+    # La balance des tiers prend aussi le filtre (D-REP-028) : plus
+    # d'avertissement, et soldes payés + non payés = tous.
+    unpaid.issues.map(&.key).should_not contain("paid_card")
+    solde = ->(view : Api::ListingResultView) { view.totals[1] || S.d("0") }
+    (solde.call(paid) + solde.call(unpaid)).should eq(solde.call(all))
+    solde.call(paid).should eq(S.d("0")) # aucune vente encaissée dans ce jeu
     kept = Api.keep_listing(S.designer, listing.id, Api::ListingRunInput.new(from, to, false), Api::KeepInput.new).value!
     Api.listing_snapshot(S.designer, kept.summary.id).result.paid.should be_false
   end

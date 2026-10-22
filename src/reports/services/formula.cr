@@ -23,7 +23,8 @@ module Reports
   #   ce compte : contrepartie) et `card=QCODE` ou `card=*` (écritures où
   #   paraît la fiche), sommés par le cœur (`Accounting.line_sums`) ;
   #   `date=operation|payment|due` (date qui situe l'écriture dans la
-  #   période) et `paid=yes|no` (écritures payées ou non) ; `vat=CODE,…` ou
+  #   période) et `paid=yes|no` (écritures payées ou non), aussi pour une
+  #   fiche ; `vat=CODE,…` ou
   #   `vat=*` (lignes portant ces codes de TVA, `Accounting.vat_totals`) et
   #   `vat_part=base|tax|total` ;
   # * `$CODE` montant d'une autre ligne dans la même colonne, `@CODE` d'une
@@ -526,7 +527,11 @@ module Reports
         raise Error.new("option", {"value" => match[0], "name" => "plan"}) if options.plan
         raise Error.new("option", {"value" => match[0], "name" => "except"}) unless options.except.empty?
         raise Error.new("option", {"value" => match[0], "name" => "with"}) if options.scan?
-        raise Error.new("option", {"value" => match[0], "name" => account_only(options)}) if options.account_only?
+        # Date de paiement ou d'échéance et « payé / non payé » admis depuis
+        # le cœur 0.18.0 (D-REP-028) ; la TVA reste propre aux comptes.
+        if options.vat? || options.vat_part
+          raise Error.new("option", {"value" => match[0], "name" => options.vat? ? "vat" : "vat_part"})
+        end
         code = body == "*" ? "*" : quick_code(body, match[0])
         ref = CardRef.new(code, mode, options)
         @cards << ref

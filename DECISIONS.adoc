@@ -510,6 +510,25 @@ rien) ; les fiches sans adresse ou dont l'adresse est refusée sont
 suivi), en plus de `modeles.read` ; proposé à l'écran seulement quand le
 transport de l'instance est configuré.
 
+=== D-REP-028 — Date et « payé / non payé » sur une fiche (22 octobre 2026)
+
+*Contexte.* La balance des tiers n'avait pas les critères de A-REP-6 :
+les options `date=` et `paid=` étaient refusées sur une référence de fiche
+(`{QCODE}`, `{*}`), et le filtre « payé / non payé » d'un listing ne s'y
+appliquait pas, avec l'avertissement `paid_card` (D-REP-024). Le cœur
+0.18.0 ajoute `date_basis` et `paid` à `AuxiliaryBalanceQuery` (D-AMD-037).
+
+*Choix.* Une référence de fiche admet `date=operation|payment|due` et
+`paid=yes|no`, transmis à `auxiliary_balance` ; sans `paid=`, elle prend le
+filtre du listing, comme une référence de comptes. La TVA (`vat=`,
+`vat_part=`) reste propre aux comptes. L'avertissement `paid_card` n'est
+plus émis ; sa clé est gardée pour les copies figées qui le portent.
+Contournement retiré.
+
+*Compatibilité.* Une définition qui n'emploie pas ces options calcule
+comme avant ; un listing filtré calcule désormais ses colonnes de fiches
+avec le filtre, que l'avertissement annonçait absent.
+
 == Amendements proposés
 
 À soumettre à l'utilisateur ; l'extension les contourne sans modifier
@@ -570,5 +589,7 @@ A-REP-6 — Critère de date de paiement ou d'échéance (Comptabilité)::
   refusé ici, avertissement à l'import legacy.
   *Réalisé le 20 octobre 2026* dans le cœur (D-AMD-014) ; branché ici :
   D-REP-024, D-REP-025.
+  Balance des tiers : *réalisé le 22 octobre 2026* dans le cœur
+  (D-AMD-037) ; branché ici : D-REP-028.
 
 Aucun nouvel événement n'est demandé à ADR-003 D7.

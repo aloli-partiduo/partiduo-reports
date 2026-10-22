@@ -197,17 +197,19 @@ module Reports
     end
 
     # Montant d'une fiche (balance des tiers de sa nature, restreinte aux
-    # comptes `account`).
+    # comptes `account`), selon la date (`date=`) et le filtre « payé / non
+    # payé » (`paid=`, sinon celui du listing), comme une référence de
+    # comptes (cœur 0.18.0, D-REP-028).
     def card(code : String, kind : String, ref : Formula::CardRef, range : Range) : BigDecimal
-      # La balance des tiers n'a pas de critère de paiement (D-REP-024).
-      issue("paid_card") unless @default_paid.nil?
       return ZERO if range.empty?
       usable, ledger_ids = ledger_choice(ref.options)
       return ZERO unless usable
-      key = "#{kind}|#{ref.options.account}|#{Records.iso(range.from)}|#{Records.iso(range.to)}|#{ledger_ids.try(&.join(','))}"
+      key = "#{kind}|#{ref.options.account}|#{Records.iso(range.from)}|#{Records.iso(range.to)}|#{ledger_ids.try(&.join(','))}|" \
+            "#{basis(ref.options)}|#{paid(ref.options)}"
       rows = @auxiliary[key] ||= guarded("accounting.report.read", {} of String => AccountSum) do
         view = Acc.auxiliary_balance(@actor, Acc::AuxiliaryBalanceQuery.new(date_from: range.from, date_to: range.to,
-          kind: kind, account: ref.options.account, ledger_ids: ledger_ids))
+          kind: kind, account: ref.options.account, ledger_ids: ledger_ids, date_basis: basis(ref.options),
+          paid: paid(ref.options)))
         view.rows.to_h { |row| {row.card_code, AccountSum.new(row.card_name, row.debit, row.credit)} }
       end
       sum = rows[code]? || return ZERO
