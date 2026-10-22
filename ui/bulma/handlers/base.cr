@@ -52,7 +52,7 @@ module Reports
 
       def self.iso_date(text : String) : Time?
         Time.parse_utc(text, "%Y-%m-%d")
-      rescue Time::Format::Error
+      rescue Time::Format::Error | ArgumentError
         nil
       end
 
