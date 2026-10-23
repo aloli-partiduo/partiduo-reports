@@ -81,7 +81,7 @@ src/
     ├── services/              # formule, périodes, sources, calculs, exports, documents, partage (interne)
     ├── api/                   # contrat public Reports::Api
     ├── starters/              # définitions fournies (JSON)
-    └── locales/               # fr, en, nl
+    └── locales/               # fr, en, nl, de, es, it, pt
 ui/
 └── bulma/                     # interface pour partiduo-ui-bulma (application « reports_ui »)
     ├── bulma.cr               # routes sous /ext/REPORTS/

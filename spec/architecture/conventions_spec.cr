@@ -31,13 +31,13 @@ describe "Conventions de l'extension REPORTS" do
     offenders.should be_empty
   end
 
-  it "a les mêmes clés de traduction en fr, en et nl, aux mêmes interpolations" do
+  it "a les mêmes clés de traduction dans chaque langue de l'interface, aux mêmes interpolations" do
     %w[src/reports/locales ui/bulma/locales].flat_map do |dir|
       PartiduoUi::Translations.parity_failures(File.join(Reports::SpecSupport::ROOT, dir))
     end.should eq([] of String)
   end
 
-  it "traduit en fr, en et nl toute clé passée à I18n.t ou {% translate %} (cœur, interface, extension)" do
+  it "traduit dans chaque langue de l'interface toute clé passée à I18n.t ou {% translate %} (cœur, interface, extension)" do
     PartiduoUi::Translations.unknown_keys(Reports::SpecSupport::ROOT, %w[src/**/*.cr ui/**/*.cr ui/**/*.html]).should eq([] of String)
   end
 
@@ -55,7 +55,7 @@ describe "Conventions de l'extension REPORTS" do
     missing.should be_empty
   end
 
-  it "traduit toute clé d'erreur du contrat (reports.errors.*) en fr, en et nl" do
+  it "traduit toute clé d'erreur du contrat (reports.errors.*) dans chaque langue de l'interface" do
     cited = source_files("src/**/*.cr").flat_map do |path|
       text = File.read(path)
       text.scan(/error\([^()]*?, "([a-z_]+(?:\.[a-z_]+)+)"/).map(&.[1]) + text.scan(/issue\(\w+, "([a-z_]+(?:\.[a-z_]+)+)"/).map(&.[1])

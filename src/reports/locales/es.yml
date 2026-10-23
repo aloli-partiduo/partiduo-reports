@@ -1,0 +1,272 @@
+es:
+  reports:
+    module:
+      name: "Informes avanzados y listados"
+    permissions:
+      read: "Calcular y exportar los informes y los listados, consultar las declaraciones y listados conservados"
+      design: "Definir, copiar, importar y exportar los informes y los listados; conservar una declaración o un listado"
+      admin: "Borrar las declaraciones y listados conservados; sustituir una definición al importar"
+    menu:
+      reports_advanced: "Informes avanzados"
+      reports_listings: "Listados de fichas"
+      reports_archive: "Declaraciones y listados conservados"
+      reports_sharing: "Informes y listados: compartir"
+    columns:
+      default: "Importe"
+    copy_name: "%{name} (copia)"
+    answers:
+      "yes": "Sí"
+      "no": "No"
+    export:
+      label: "Descripción"
+      card: "Ficha"
+      total: "Total"
+    line_kinds:
+      title: "Título principal"
+      heading1: "Título"
+      heading2: "Subtítulo"
+      heading3: "Ladillo"
+      text: "Texto"
+      note: "Observación"
+      formula: "Fórmula"
+      accounts: "Lista de cuentas"
+      blank: "Línea vacía"
+      account: "Cuenta"
+    line_styles:
+      normal: "Normal"
+      bold: "Subtotal (negrita)"
+      total: "Total"
+    column_kinds:
+      period: "Periodo"
+      formula: "Fórmula sobre las columnas"
+    spans:
+      period: "Periodo solicitado"
+      ytd: "Desde el inicio del ejercicio"
+      year: "Ejercicio completo"
+      opening: "Antes del periodo (apertura)"
+      month: "Mes de la fecha final"
+    steps:
+      none: "Ninguno (un solo periodo)"
+      week: "Por semana"
+      fortnight: "Por quincena"
+      month: "Por mes"
+      bimester: "Por bimestre"
+      quarter: "Por trimestre"
+      semester: "Por semestre"
+      year: "Por año"
+    sources:
+      field: "Campo de la ficha"
+      attribute: "Atributo de la categoría"
+      formula: "Fórmula"
+    card_fields:
+      code: "Código (quick code)"
+      name: "Nombre"
+      category: "Categoría"
+      kind: "Naturaleza"
+      description: "Descripción"
+      vat_number: "NIF-IVA"
+      siren: "SIREN"
+      siret: "SIRET"
+      email: "Correo electrónico"
+      phone: "Teléfono"
+      contact_name: "Contacto"
+      address_line1: "Dirección"
+      address_line2: "Complemento de dirección"
+      postcode: "Código postal"
+      city: "Ciudad"
+      country: "País"
+      iban: "IBAN"
+      bic: "BIC"
+      enabled: "Activa"
+      sale_price: "Precio de venta"
+      purchase_price: "Precio de compra"
+    operators:
+      eq: "igual a"
+      ne: "distinto de"
+      lt: "menor que"
+      le: "menor o igual que"
+      gt: "mayor que"
+      ge: "mayor o igual que"
+      contains: "contiene"
+    snapshot_kinds:
+      declaration: "Declaración"
+      listing: "Listado"
+    formats:
+      csv: "CSV"
+      ods: "ODS (hoja de cálculo)"
+      pdf: "PDF"
+    starters:
+      sig:
+        name: "Soldes intermédiaires de gestion (saldos intermedios de gestión, Francia)"
+        description: "Margen comercial, valor añadido, excedente bruto de explotación, resultados de explotación, financiero, excepcional y del ejercicio; ejercicio, ejercicio anterior, variación."
+      clients_ca:
+        name: "Clientes: volumen de negocio y saldo"
+        description: "Una línea por cliente activo: ciudad, correo electrónico, volumen de negocio del periodo, saldo de la cuenta; se descartan los clientes sin volumen de negocio."
+    issues:
+      current_card: "La ficha actual ({*}, card=*) solo tiene sentido en un listado: importe cero."
+      scan_truncated: "Más de %{max} asientos que leer para una referencia con contrapartida o ficha: cálculo truncado."
+      ledger_unknown: "Diario %{code} no encontrado en este expediente: ignorado."
+      module_disabled: "El módulo %{code} está inactivo: sus importes valen cero."
+      forbidden: "Falta el permiso %{permission}: los importes que protege valen cero."
+      analytic_unknown: "Partida analítica %{code} no encontrada: importe cero."
+      analytic_ambiguous: "La partida analítica %{code} existe en varios planes: precise «plan=»."
+      card_unknown: "Ficha %{code} no encontrada: importe cero."
+      cycle: "La línea %{line} se cita a sí misma, directa o indirectamente: importe cero."
+      formula_error: "Fórmula de %{line} imposible de calcular (%{error}): importe cero."
+      category_unknown: "Categoría de fichas %{code} no encontrada en este expediente: listado vacío."
+      cards_truncated: "Más de %{max} fichas: listado truncado."
+      legacy_line: "Línea «%{line}» no convertida (%{formula}): incorporada como observación, por revisar."
+      legacy_vat: "Línea «%{line}»: el código de IVA de la fuente legacy no se traslada de un expediente a otro: detalle no incorporado, por reescribir con vat=CODE (véanse los códigos de IVA del expediente)."
+      legacy_reconciled: "Línea «%{line}»: las operaciones conciliadas se incorporan en su fecha de pago (punteo), por comprobar."
+      paid_card: "El filtro pagado / no pagado no se aplica a una ficha ({…}): utilice una referencia de cuentas con card= (por ejemplo [411%-s; card=*])."
+    modeles:
+      kinds:
+        report: "Declaración de un informe"
+        listing: "Documento de un listado"
+      vocabulary:
+        groups:
+          declaration: "La declaración"
+          dossier: "El expediente"
+          montants: "Importes de las líneas"
+          lignes: "Las líneas mostradas (lista)"
+          listing: "El listado"
+          fiche: "La ficha del documento"
+          colonnes: "Columnas de la ficha"
+          totaux: "Totales de las columnas"
+          fiches: "Todas las fichas (lista)"
+        declaration:
+          titre: "Título (nombre y periodo, o título conservado)"
+          note: "Descripción conservada"
+          rapport: "Nombre del informe"
+          code: "Código del informe"
+          periode: "Periodo (del … al …)"
+          debut: "Fecha de inicio"
+          fin: "Fecha final"
+          date: "Fecha de hoy"
+          jours: "Número de días del periodo"
+          mois: "Número de meses del periodo"
+          annees: "Número de años del periodo"
+        dossier:
+          nom: "Nombre de la empresa"
+          tva: "NIF-IVA"
+          siren: "SIREN"
+          rue: "Calle"
+          numero: "Número"
+          code_postal: "Código postal"
+          ville: "Ciudad"
+          pays: "País"
+          telephone: "Teléfono"
+        montants:
+          _any: "Importe de la línea CODE en la primera columna; CODE_COL en la columna COL (por ejemplo CA_N1)"
+        lignes:
+          code: "Código de la línea"
+          libelle: "Descripción (cuenta y nombre en una lista de cuentas)"
+          sorte: "Tipo de línea (formula, title, heading1…)"
+          style: "Estilo (normal, bold, total)"
+          retrait: "Sangría (0 a 5)"
+          compte: "Cuenta de una línea de lista de cuentas"
+          montant: "Importe de la primera columna"
+          _any: "Importe de la columna de código CODE (por ejemplo N, N1, P1)"
+        listing:
+          titre: "Título conservado"
+          note: "Descripción conservada"
+          nom: "Nombre del listado"
+          code: "Código del listado"
+          periode: "Periodo (del … al …)"
+          debut: "Fecha de inicio"
+          fin: "Fecha final"
+          date: "Fecha de hoy"
+        fiche:
+          code: "Quick code de la ficha"
+          nom: "Nombre de la ficha"
+          courriel: "Dirección de correo electrónico (envío por correo)"
+        colonnes:
+          _any: "Valor de la columna de código CODE para la ficha del documento"
+        totaux:
+          _any: "Total de la columna de importe CODE"
+        fiches:
+          code: "Quick code"
+          nom: "Nombre"
+          _any: "Valor de la columna de código CODE"
+    errors:
+      documents:
+        unavailable: "Los documentos desde una plantilla requieren la extensión «Plantillas de documentos» activa."
+        too_many: "%{max} fichas como máximo por solicitud."
+      mail:
+        subject_blank: "El asunto es obligatorio."
+        body_blank: "El mensaje es obligatorio."
+      code:
+        invalid: "Código: una letra y luego letras, cifras o «_», 20 caracteres como máximo."
+        taken: "Este código ya está en uso."
+        duplicate: "Este código figura dos veces."
+      name:
+        blank: "El nombre es obligatorio."
+        too_long: "El nombre no puede superar %{max} caracteres."
+      decimals:
+        range: "El número de decimales va de 0 a 2."
+      columns:
+        count: "De 1 a %{max} columnas."
+      label:
+        blank: "La descripción es obligatoria."
+        too_long: "La descripción no puede superar %{max} caracteres."
+      choice:
+        invalid: "Opción no válida."
+      shift:
+        range: "El desplazamiento no puede superar %{max} meses."
+      column:
+        order: "La columna %{code} debe definirse antes que esta."
+        unknown: "Columna %{code} desconocida."
+      lines:
+        count: "De 1 a %{max} líneas."
+      indent:
+        range: "La sangría va de 0 a 5."
+      accounts:
+        single: "Una lista de cuentas solo cita una única referencia de cuentas, por ejemplo [60%-s]."
+      line:
+        unknown: "Línea %{code} desconocida o sin importe."
+        cycle: "Las líneas se citan en bucle."
+      attribute:
+        blank: "Clave de atributo: minúsculas, cifras o «_»."
+      conditions:
+        count: "%{max} condiciones como máximo."
+      run:
+        dates: "La fecha de inicio es posterior a la fecha final."
+      override:
+        unknown: "Importe revisado de una línea o de una columna desconocida (%{line}, %{column})."
+      title:
+        blank: "El título es obligatorio."
+        too_long: "El título no puede superar %{max} caracteres."
+      keep:
+        none: "Marque al menos una ficha."
+      import:
+        too_large: "Archivo demasiado grande (%{max} como máximo)."
+        json: "Este archivo no es un JSON válido."
+        format: "Este archivo no es un archivo de definiciones de informes y listados."
+        version: "Versión %{version} del formato desconocida."
+        empty: "El archivo no contiene ninguna definición."
+        count: "%{max} definiciones como máximo por archivo."
+        structure: "Campo %{field} mal formado."
+      legacy:
+        format: "Este archivo no es una definición de informe exportada por la aplicación de origen (encabezado RAPAV)."
+      formula:
+        empty: "La fórmula está vacía."
+        too_long: "Fórmula demasiado larga (%{max} caracteres como máximo)."
+        depth: "Fórmula demasiado anidada (%{max} niveles como máximo)."
+        syntax: "Fórmula no válida en el carácter %{position}."
+        function: "Función desconocida: %{name}."
+        arguments: "Número de argumentos incorrecto para %{name}."
+        round: "round: de 0 a %{max} decimales."
+        from: "Cláusula FROM no válida: %{value}."
+        account: "Referencia de cuentas no válida: %{value}."
+        card: "Referencia de ficha no válida: %{value}."
+        analytic: "Referencia analítica no válida: %{value}."
+        analytic_mode: "Con «account=», una partida analítica solo admite -s o -S: %{value}."
+        option: "Opción «%{name}» desconocida, repetida o no admitida aquí: %{value}."
+        option_value: "Valor de la opción «%{name}» no válido: %{value}."
+        comparison: "if: se esperaba una comparación (>, <, >=, <=, =, <>)."
+        line_ref: "Una línea (%{code}) no se puede citar aquí."
+        column_ref: "Una columna (@%{code}) solo se cita en una fórmula de columna."
+        current_card: "La ficha actual ({*}, card=*) solo se cita en un listado."
+        reference_in_column: "Una fórmula de columna solo cita columnas (@CODE)."
+        line_unknown: "Línea %{code} desconocida."
+        column_unknown: "Columna %{code} desconocida."

@@ -1,0 +1,272 @@
+it:
+  reports:
+    module:
+      name: "Report avanzati ed elenchi"
+    permissions:
+      read: "Calcolare ed esportare i report e gli elenchi, consultare le dichiarazioni e gli elenchi conservati"
+      design: "Definire, copiare, importare ed esportare i report e gli elenchi; conservare una dichiarazione o un elenco"
+      admin: "Cancellare le dichiarazioni e gli elenchi conservati; sostituire una definizione all'importazione"
+    menu:
+      reports_advanced: "Report avanzati"
+      reports_listings: "Elenchi di schede"
+      reports_archive: "Dichiarazioni ed elenchi conservati"
+      reports_sharing: "Report ed elenchi: condivisione"
+    columns:
+      default: "Importo"
+    copy_name: "%{name} (copia)"
+    answers:
+      "yes": "Sì"
+      "no": "No"
+    export:
+      label: "Descrizione"
+      card: "Scheda"
+      total: "Totale"
+    line_kinds:
+      title: "Titolo principale"
+      heading1: "Titolo"
+      heading2: "Sottotitolo"
+      heading3: "Titoletto"
+      text: "Testo"
+      note: "Osservazione"
+      formula: "Formula"
+      accounts: "Elenco di conti"
+      blank: "Riga vuota"
+      account: "Conto"
+    line_styles:
+      normal: "Normale"
+      bold: "Subtotale (grassetto)"
+      total: "Totale"
+    column_kinds:
+      period: "Periodo"
+      formula: "Formula sulle colonne"
+    spans:
+      period: "Periodo richiesto"
+      ytd: "Dall'inizio dell'esercizio"
+      year: "Esercizio intero"
+      opening: "Prima del periodo (apertura)"
+      month: "Mese della data di fine"
+    steps:
+      none: "Nessuna (un solo periodo)"
+      week: "Per settimana"
+      fortnight: "Per quindicina"
+      month: "Per mese"
+      bimester: "Per bimestre"
+      quarter: "Per trimestre"
+      semester: "Per semestre"
+      year: "Per anno"
+    sources:
+      field: "Campo della scheda"
+      attribute: "Attributo della categoria"
+      formula: "Formula"
+    card_fields:
+      code: "Codice (quick code)"
+      name: "Nome"
+      category: "Categoria"
+      kind: "Natura"
+      description: "Descrizione"
+      vat_number: "Partita IVA"
+      siren: "SIREN"
+      siret: "SIRET"
+      email: "E-mail"
+      phone: "Telefono"
+      contact_name: "Contatto"
+      address_line1: "Indirizzo"
+      address_line2: "Complemento d'indirizzo"
+      postcode: "CAP"
+      city: "Città"
+      country: "Paese"
+      iban: "IBAN"
+      bic: "BIC"
+      enabled: "Attiva"
+      sale_price: "Prezzo di vendita"
+      purchase_price: "Prezzo di acquisto"
+    operators:
+      eq: "uguale a"
+      ne: "diverso da"
+      lt: "minore di"
+      le: "minore o uguale a"
+      gt: "maggiore di"
+      ge: "maggiore o uguale a"
+      contains: "contiene"
+    snapshot_kinds:
+      declaration: "Dichiarazione"
+      listing: "Elenco"
+    formats:
+      csv: "CSV"
+      ods: "ODS (foglio di calcolo)"
+      pdf: "PDF"
+    starters:
+      sig:
+        name: "Saldi intermedi di gestione (Francia)"
+        description: "Margine commerciale, valore aggiunto, margine operativo lordo, risultati operativo, finanziario, straordinario e dell'esercizio; esercizio, esercizio precedente, variazione."
+      clients_ca:
+        name: "Clienti: fatturato e saldo"
+        description: "Una riga per cliente attivo: città, e-mail, fatturato del periodo, saldo del conto; clienti senza fatturato esclusi."
+    issues:
+      current_card: "La scheda corrente ({*}, card=*) ha senso solo in un elenco: importo nullo."
+      scan_truncated: "Più di %{max} registrazioni da leggere per un riferimento con contropartita o scheda: calcolo troncato."
+      ledger_unknown: "Giornale %{code} non trovato in questo dossier: ignorato."
+      module_disabled: "Il modulo %{code} è inattivo: i suoi importi valgono zero."
+      forbidden: "Autorizzazione %{permission} mancante: gli importi che protegge valgono zero."
+      analytic_unknown: "Voce analitica %{code} non trovata: importo nullo."
+      analytic_ambiguous: "La voce analitica %{code} esiste in più piani: precisi «plan=»."
+      card_unknown: "Scheda %{code} non trovata: importo nullo."
+      cycle: "La riga %{line} cita se stessa, direttamente o indirettamente: importo nullo."
+      formula_error: "Formula di %{line} non calcolabile (%{error}): importo nullo."
+      category_unknown: "Categoria di schede %{code} non trovata in questo dossier: elenco vuoto."
+      cards_truncated: "Più di %{max} schede: elenco troncato."
+      legacy_line: "Riga «%{line}» non convertita (%{formula}): ripresa come osservazione, da rivedere."
+      legacy_vat: "Riga «%{line}»: il codice IVA della fonte legacy non si trasferisce da un dossier all'altro: dettaglio non ripreso, da riscrivere con vat=CODE (vedere i codici IVA del dossier)."
+      legacy_reconciled: "Riga «%{line}»: le operazioni riconciliate sono riprese alla data di pagamento (abbinamento), da verificare."
+      paid_card: "Il filtro pagato / non pagato non si applica a una scheda ({…}): usi un riferimento di conti con card= (per esempio [411%-s; card=*])."
+    modeles:
+      kinds:
+        report: "Dichiarazione di un report"
+        listing: "Documento di un elenco"
+      vocabulary:
+        groups:
+          declaration: "La dichiarazione"
+          dossier: "Il dossier"
+          montants: "Importi delle righe"
+          lignes: "Le righe visualizzate (elenco)"
+          listing: "L'elenco"
+          fiche: "La scheda del documento"
+          colonnes: "Colonne della scheda"
+          totaux: "Totali delle colonne"
+          fiches: "Tutte le schede (elenco)"
+        declaration:
+          titre: "Titolo (nome e periodo, o titolo conservato)"
+          note: "Descrizione conservata"
+          rapport: "Nome del report"
+          code: "Codice del report"
+          periode: "Periodo (dal … al …)"
+          debut: "Data di inizio"
+          fin: "Data di fine"
+          date: "Data odierna"
+          jours: "Numero di giorni del periodo"
+          mois: "Numero di mesi del periodo"
+          annees: "Numero di anni del periodo"
+        dossier:
+          nom: "Nome della società"
+          tva: "Partita IVA"
+          siren: "SIREN"
+          rue: "Via"
+          numero: "Numero"
+          code_postal: "CAP"
+          ville: "Città"
+          pays: "Paese"
+          telephone: "Telefono"
+        montants:
+          _any: "Importo della riga CODE nella prima colonna; CODE_COL nella colonna COL (per esempio CA_N1)"
+        lignes:
+          code: "Codice della riga"
+          libelle: "Descrizione (conto e denominazione per un elenco di conti)"
+          sorte: "Tipo di riga (formula, title, heading1…)"
+          style: "Stile (normal, bold, total)"
+          retrait: "Rientro (da 0 a 5)"
+          compte: "Conto di una riga di elenco di conti"
+          montant: "Importo della prima colonna"
+          _any: "Importo della colonna con codice CODE (per esempio N, N1, P1)"
+        listing:
+          titre: "Titolo conservato"
+          note: "Descrizione conservata"
+          nom: "Nome dell'elenco"
+          code: "Codice dell'elenco"
+          periode: "Periodo (dal … al …)"
+          debut: "Data di inizio"
+          fin: "Data di fine"
+          date: "Data odierna"
+        fiche:
+          code: "Quick code della scheda"
+          nom: "Nome della scheda"
+          courriel: "Indirizzo e-mail (invio per e-mail)"
+        colonnes:
+          _any: "Valore della colonna con codice CODE per la scheda del documento"
+        totaux:
+          _any: "Totale della colonna di importo CODE"
+        fiches:
+          code: "Quick code"
+          nom: "Nome"
+          _any: "Valore della colonna con codice CODE"
+    errors:
+      documents:
+        unavailable: "I documenti da un modello richiedono l'estensione «Modelli di documenti» attiva."
+        too_many: "Al massimo %{max} schede per richiesta."
+      mail:
+        subject_blank: "L'oggetto è obbligatorio."
+        body_blank: "Il messaggio è obbligatorio."
+      code:
+        invalid: "Codice: una lettera seguita da lettere, cifre o «_», al massimo 20 caratteri."
+        taken: "Questo codice è già in uso."
+        duplicate: "Questo codice compare due volte."
+      name:
+        blank: "Il nome è obbligatorio."
+        too_long: "Il nome non può superare %{max} caratteri."
+      decimals:
+        range: "Il numero di decimali va da 0 a 2."
+      columns:
+        count: "Da 1 a %{max} colonne."
+      label:
+        blank: "La descrizione è obbligatoria."
+        too_long: "La descrizione non può superare %{max} caratteri."
+      choice:
+        invalid: "Scelta non valida."
+      shift:
+        range: "Lo scostamento non può superare %{max} mesi."
+      column:
+        order: "La colonna %{code} deve essere definita prima di questa."
+        unknown: "Colonna %{code} sconosciuta."
+      lines:
+        count: "Da 1 a %{max} righe."
+      indent:
+        range: "Il rientro va da 0 a 5."
+      accounts:
+        single: "Un elenco di conti cita un solo riferimento di conti, per esempio [60%-s]."
+      line:
+        unknown: "Riga %{code} sconosciuta o senza importo."
+        cycle: "Le righe si citano a vicenda in un ciclo."
+      attribute:
+        blank: "Chiave di attributo: minuscole, cifre o «_»."
+      conditions:
+        count: "Al massimo %{max} condizioni."
+      run:
+        dates: "La data di inizio è successiva alla data di fine."
+      override:
+        unknown: "Importo rivisto di una riga o di una colonna sconosciuta (%{line}, %{column})."
+      title:
+        blank: "Il titolo è obbligatorio."
+        too_long: "Il titolo non può superare %{max} caratteri."
+      keep:
+        none: "Selezioni almeno una scheda."
+      import:
+        too_large: "File troppo grande (al massimo %{max})."
+        json: "Questo file non è un JSON valido."
+        format: "Questo file non è un file di definizioni di report e di elenchi."
+        version: "Versione %{version} del formato sconosciuta."
+        empty: "Il file non contiene alcuna definizione."
+        count: "Al massimo %{max} definizioni per file."
+        structure: "Campo %{field} mal formato."
+      legacy:
+        format: "Questo file non è una definizione di report esportata dall'applicazione d'origine (intestazione RAPAV)."
+      formula:
+        empty: "La formula è vuota."
+        too_long: "Formula troppo lunga (al massimo %{max} caratteri)."
+        depth: "Formula troppo annidata (al massimo %{max} livelli)."
+        syntax: "Formula non valida al carattere %{position}."
+        function: "Funzione sconosciuta: %{name}."
+        arguments: "Numero di argomenti errato per %{name}."
+        round: "round: da 0 a %{max} decimali."
+        from: "Clausola FROM non valida: %{value}."
+        account: "Riferimento di conti non valido: %{value}."
+        card: "Riferimento di scheda non valido: %{value}."
+        analytic: "Riferimento analitico non valido: %{value}."
+        analytic_mode: "Con «account=», una voce analitica ammette solo -s o -S: %{value}."
+        option: "Opzione «%{name}» sconosciuta, ripetuta o non ammessa qui: %{value}."
+        option_value: "Valore dell'opzione «%{name}» non valido: %{value}."
+        comparison: "if: confronto atteso (>, <, >=, <=, =, <>)."
+        line_ref: "Una riga (%{code}) non si cita qui."
+        column_ref: "Una colonna (@%{code}) si cita solo in una formula di colonna."
+        current_card: "La scheda corrente ({*}, card=*) si cita solo in un elenco."
+        reference_in_column: "Una formula di colonna cita solo colonne (@CODE)."
+        line_unknown: "Riga %{code} sconosciuta."
+        column_unknown: "Colonna %{code} sconosciuta."

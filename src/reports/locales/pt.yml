@@ -1,0 +1,272 @@
+pt:
+  reports:
+    module:
+      name: "Relatórios avançados e listagens"
+    permissions:
+      read: "Calcular e exportar os relatórios e as listagens, consultar as declarações e listagens conservadas"
+      design: "Definir, copiar, importar e exportar os relatórios e as listagens; conservar uma declaração ou uma listagem"
+      admin: "Apagar as declarações e listagens conservadas; substituir uma definição na importação"
+    menu:
+      reports_advanced: "Relatórios avançados"
+      reports_listings: "Listagens de fichas"
+      reports_archive: "Declarações e listagens conservadas"
+      reports_sharing: "Relatórios e listagens: partilha"
+    columns:
+      default: "Montante"
+    copy_name: "%{name} (cópia)"
+    answers:
+      "yes": "Sim"
+      "no": "Não"
+    export:
+      label: "Descrição"
+      card: "Ficha"
+      total: "Total"
+    line_kinds:
+      title: "Título principal"
+      heading1: "Título"
+      heading2: "Subtítulo"
+      heading3: "Entretítulo"
+      text: "Texto"
+      note: "Observação"
+      formula: "Fórmula"
+      accounts: "Lista de contas"
+      blank: "Linha vazia"
+      account: "Conta"
+    line_styles:
+      normal: "Normal"
+      bold: "Subtotal (negrito)"
+      total: "Total"
+    column_kinds:
+      period: "Período"
+      formula: "Fórmula sobre as colunas"
+    spans:
+      period: "Período pedido"
+      ytd: "Desde o início do exercício"
+      year: "Exercício completo"
+      opening: "Antes do período (abertura)"
+      month: "Mês da data de fim"
+    steps:
+      none: "Nenhuma (um único período)"
+      week: "Por semana"
+      fortnight: "Por quinzena"
+      month: "Por mês"
+      bimester: "Por bimestre"
+      quarter: "Por trimestre"
+      semester: "Por semestre"
+      year: "Por ano"
+    sources:
+      field: "Campo da ficha"
+      attribute: "Atributo da categoria"
+      formula: "Fórmula"
+    card_fields:
+      code: "Código (quick code)"
+      name: "Nome"
+      category: "Categoria"
+      kind: "Natureza"
+      description: "Descrição"
+      vat_number: "Número de IVA"
+      siren: "SIREN"
+      siret: "SIRET"
+      email: "E-mail"
+      phone: "Telefone"
+      contact_name: "Contacto"
+      address_line1: "Morada"
+      address_line2: "Complemento da morada"
+      postcode: "Código postal"
+      city: "Localidade"
+      country: "País"
+      iban: "IBAN"
+      bic: "BIC"
+      enabled: "Ativa"
+      sale_price: "Preço de venda"
+      purchase_price: "Preço de compra"
+    operators:
+      eq: "igual a"
+      ne: "diferente de"
+      lt: "inferior a"
+      le: "inferior ou igual a"
+      gt: "superior a"
+      ge: "superior ou igual a"
+      contains: "contém"
+    snapshot_kinds:
+      declaration: "Declaração"
+      listing: "Listagem"
+    formats:
+      csv: "CSV"
+      ods: "ODS (folha de cálculo)"
+      pdf: "PDF"
+    starters:
+      sig:
+        name: "Saldos intermédios de gestão (França)"
+        description: "Margem comercial, valor acrescentado, excedente bruto de exploração, resultados de exploração, financeiro, extraordinário e do exercício; exercício, exercício anterior, variação."
+      clients_ca:
+        name: "Clientes: volume de negócios e saldo"
+        description: "Uma linha por cliente ativo: localidade, e-mail, volume de negócios do período, saldo da conta; clientes sem volume de negócios excluídos."
+    issues:
+      current_card: "A ficha corrente ({*}, card=*) só faz sentido numa listagem: montante nulo."
+      scan_truncated: "Mais de %{max} lançamentos a ler para uma referência com contrapartida ou ficha: cálculo truncado."
+      ledger_unknown: "Diário %{code} não encontrado neste dossier: ignorado."
+      module_disabled: "O módulo %{code} está inativo: os seus montantes valem zero."
+      forbidden: "Permissão %{permission} em falta: os montantes que protege valem zero."
+      analytic_unknown: "Rubrica analítica %{code} não encontrada: montante nulo."
+      analytic_ambiguous: "A rubrica analítica %{code} existe em vários planos: indique «plan=»."
+      card_unknown: "Ficha %{code} não encontrada: montante nulo."
+      cycle: "A linha %{line} cita-se a si mesma, direta ou indiretamente: montante nulo."
+      formula_error: "Fórmula de %{line} impossível de calcular (%{error}): montante nulo."
+      category_unknown: "Categoria de fichas %{code} não encontrada neste dossier: listagem vazia."
+      cards_truncated: "Mais de %{max} fichas: listagem truncada."
+      legacy_line: "Linha «%{line}» não convertida (%{formula}): retomada como observação, a rever."
+      legacy_vat: "Linha «%{line}»: o código de IVA da fonte legacy não se transpõe de um dossier para outro: detalhe não retomado, a reescrever com vat=CODE (ver os códigos de IVA do dossier)."
+      legacy_reconciled: "Linha «%{line}»: as operações reconciliadas são retomadas na data de pagamento (conciliação), a verificar."
+      paid_card: "O filtro pago / não pago não se aplica a uma ficha ({…}): utilize uma referência de contas com card= (por exemplo [411%-s; card=*])."
+    modeles:
+      kinds:
+        report: "Declaração de um relatório"
+        listing: "Documento de uma listagem"
+      vocabulary:
+        groups:
+          declaration: "A declaração"
+          dossier: "O dossier"
+          montants: "Montantes das linhas"
+          lignes: "As linhas apresentadas (lista)"
+          listing: "A listagem"
+          fiche: "A ficha do documento"
+          colonnes: "Colunas da ficha"
+          totaux: "Totais das colunas"
+          fiches: "Todas as fichas (lista)"
+        declaration:
+          titre: "Título (nome e período, ou título conservado)"
+          note: "Descrição conservada"
+          rapport: "Nome do relatório"
+          code: "Código do relatório"
+          periode: "Período (de … a …)"
+          debut: "Data de início"
+          fin: "Data de fim"
+          date: "Data de hoje"
+          jours: "Número de dias do período"
+          mois: "Número de meses do período"
+          annees: "Número de anos do período"
+        dossier:
+          nom: "Nome da sociedade"
+          tva: "Número de IVA"
+          siren: "SIREN"
+          rue: "Rua"
+          numero: "Número"
+          code_postal: "Código postal"
+          ville: "Localidade"
+          pays: "País"
+          telephone: "Telefone"
+        montants:
+          _any: "Montante da linha CODE na primeira coluna; CODE_COL na coluna COL (por exemplo CA_N1)"
+        lignes:
+          code: "Código da linha"
+          libelle: "Descrição (conta e designação para uma lista de contas)"
+          sorte: "Tipo de linha (formula, title, heading1…)"
+          style: "Estilo (normal, bold, total)"
+          retrait: "Recuo (0 a 5)"
+          compte: "Conta de uma linha de lista de contas"
+          montant: "Montante da primeira coluna"
+          _any: "Montante da coluna com o código CODE (por exemplo N, N1, P1)"
+        listing:
+          titre: "Título conservado"
+          note: "Descrição conservada"
+          nom: "Nome da listagem"
+          code: "Código da listagem"
+          periode: "Período (de … a …)"
+          debut: "Data de início"
+          fin: "Data de fim"
+          date: "Data de hoje"
+        fiche:
+          code: "Quick code da ficha"
+          nom: "Nome da ficha"
+          courriel: "Endereço eletrónico (envio por e-mail)"
+        colonnes:
+          _any: "Valor da coluna com o código CODE para a ficha do documento"
+        totaux:
+          _any: "Total da coluna de montante CODE"
+        fiches:
+          code: "Quick code"
+          nom: "Nome"
+          _any: "Valor da coluna com o código CODE"
+    errors:
+      documents:
+        unavailable: "Os documentos a partir de um modelo exigem a extensão «Modelos de documentos» ativa."
+        too_many: "No máximo %{max} fichas por pedido."
+      mail:
+        subject_blank: "O assunto é obrigatório."
+        body_blank: "A mensagem é obrigatória."
+      code:
+        invalid: "Código: uma letra seguida de letras, algarismos ou «_», no máximo 20 caracteres."
+        taken: "Este código já está em uso."
+        duplicate: "Este código figura duas vezes."
+      name:
+        blank: "O nome é obrigatório."
+        too_long: "O nome não pode exceder %{max} caracteres."
+      decimals:
+        range: "O número de casas decimais vai de 0 a 2."
+      columns:
+        count: "De 1 a %{max} colunas."
+      label:
+        blank: "A descrição é obrigatória."
+        too_long: "A descrição não pode exceder %{max} caracteres."
+      choice:
+        invalid: "Escolha inválida."
+      shift:
+        range: "O desfasamento não pode exceder %{max} meses."
+      column:
+        order: "A coluna %{code} deve ser definida antes desta."
+        unknown: "Coluna %{code} desconhecida."
+      lines:
+        count: "De 1 a %{max} linhas."
+      indent:
+        range: "O recuo vai de 0 a 5."
+      accounts:
+        single: "Uma lista de contas cita uma única referência de contas, por exemplo [60%-s]."
+      line:
+        unknown: "Linha %{code} desconhecida ou sem montante."
+        cycle: "As linhas citam-se em ciclo."
+      attribute:
+        blank: "Chave de atributo: minúsculas, algarismos ou «_»."
+      conditions:
+        count: "No máximo %{max} condições."
+      run:
+        dates: "A data de início é posterior à data de fim."
+      override:
+        unknown: "Montante revisto de uma linha ou de uma coluna desconhecida (%{line}, %{column})."
+      title:
+        blank: "O título é obrigatório."
+        too_long: "O título não pode exceder %{max} caracteres."
+      keep:
+        none: "Assinale pelo menos uma ficha."
+      import:
+        too_large: "Ficheiro demasiado grande (%{max} no máximo)."
+        json: "Este ficheiro não é um JSON válido."
+        format: "Este ficheiro não é um ficheiro de definições de relatórios e de listagens."
+        version: "Versão %{version} do formato desconhecida."
+        empty: "O ficheiro não contém nenhuma definição."
+        count: "No máximo %{max} definições por ficheiro."
+        structure: "Campo %{field} mal formado."
+      legacy:
+        format: "Este ficheiro não é uma definição de relatório exportada pela aplicação de origem (cabeçalho RAPAV)."
+      formula:
+        empty: "A fórmula está vazia."
+        too_long: "Fórmula demasiado longa (no máximo %{max} caracteres)."
+        depth: "Fórmula demasiado aninhada (no máximo %{max} níveis)."
+        syntax: "Fórmula inválida no carácter %{position}."
+        function: "Função desconhecida: %{name}."
+        arguments: "Número de argumentos incorreto para %{name}."
+        round: "round: de 0 a %{max} casas decimais."
+        from: "Cláusula FROM inválida: %{value}."
+        account: "Referência de contas inválida: %{value}."
+        card: "Referência de ficha inválida: %{value}."
+        analytic: "Referência analítica inválida: %{value}."
+        analytic_mode: "Com «account=», uma rubrica analítica só admite -s ou -S: %{value}."
+        option: "Opção «%{name}» desconhecida, repetida ou não admitida aqui: %{value}."
+        option_value: "Valor da opção «%{name}» inválido: %{value}."
+        comparison: "if: comparação esperada (>, <, >=, <=, =, <>)."
+        line_ref: "Uma linha (%{code}) não se cita aqui."
+        column_ref: "Uma coluna (@%{code}) só se cita numa fórmula de coluna."
+        current_card: "A ficha corrente ({*}, card=*) só se cita numa listagem."
+        reference_in_column: "Uma fórmula de coluna só cita colunas (@CODE)."
+        line_unknown: "Linha %{code} desconhecida."
+        column_unknown: "Coluna %{code} desconhecida."

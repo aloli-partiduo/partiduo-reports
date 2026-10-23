@@ -4,19 +4,19 @@ require "../spec_helper"
 
 # Traductions des écrans de l'extension (ADR-005 D7) : chaque route de
 # `/ext/REPORTS/` servie en `GET` (liste tirée du routeur de Marten),
-# obtenue en fr, en et nl par un administrateur, sur un dossier avec une
-# vente et des charges en 2026 : définition fournie installée (SIG),
-# rapport et listing définis, déclaration et listing conservés, rapport de
-# la Comptabilité à reprendre, suivi et modèles de documents actifs.
-# Contrôle de l'interface (`PartiduoUi::Translations`) : ni marqueur de
-# traduction absente, ni clé brute, ni interpolation non résolue, et toute
-# route atteinte par les liens des pages.
+# obtenue dans chaque langue de l'interface par un administrateur, sur
+# un dossier avec une vente et des charges en 2026 : définition fournie
+# installée (SIG), rapport et listing définis, déclaration et listing
+# conservés, rapport de la Comptabilité à reprendre, suivi et modèles de
+# documents actifs. Contrôle de l'interface (`PartiduoUi::Translations`)
+# : ni marqueur de traduction absente, ni clé brute, ni interpolation
+# non résolue, et toute route atteinte par les liens des pages.
 
 private alias S = Reports::SpecSupport
 private alias Api = Reports::Api
 private alias Acc = Partiduo::Api::Accounting
 
-describe "Traductions des écrans REPORTS (fr, en, nl)" do
+describe "Traductions des écrans REPORTS (langues de l'interface)" do
   it "rend chaque écran dans chaque langue, sans clé absente, brute ni interpolation non résolue" do
     S.activate
     browser = PartiduoUi::Books.admin

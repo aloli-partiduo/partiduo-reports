@@ -1,0 +1,272 @@
+de:
+  reports:
+    module:
+      name: "Erweiterte Berichte und Listen"
+    permissions:
+      read: "Berichte und Listen berechnen und exportieren, aufbewahrte Erklärungen und Listen einsehen"
+      design: "Berichte und Listen definieren, kopieren, importieren und exportieren; eine Erklärung oder Liste aufbewahren"
+      admin: "Aufbewahrte Erklärungen und Listen löschen; eine Definition beim Import ersetzen"
+    menu:
+      reports_advanced: "Erweiterte Berichte"
+      reports_listings: "Stammsatzlisten"
+      reports_archive: "Aufbewahrte Erklärungen und Listen"
+      reports_sharing: "Berichte und Listen: Austausch"
+    columns:
+      default: "Betrag"
+    copy_name: "%{name} (Kopie)"
+    answers:
+      "yes": "Ja"
+      "no": "Nein"
+    export:
+      label: "Bezeichnung"
+      card: "Stammsatz"
+      total: "Summe"
+    line_kinds:
+      title: "Haupttitel"
+      heading1: "Titel"
+      heading2: "Untertitel"
+      heading3: "Zwischentitel"
+      text: "Text"
+      note: "Hinweis"
+      formula: "Formel"
+      accounts: "Kontenliste"
+      blank: "Leerzeile"
+      account: "Konto"
+    line_styles:
+      normal: "Normal"
+      bold: "Zwischensumme (fett)"
+      total: "Summe"
+    column_kinds:
+      period: "Periode"
+      formula: "Formel über die Spalten"
+    spans:
+      period: "Angefragte Periode"
+      ytd: "Seit Beginn des Geschäftsjahres"
+      year: "Ganzes Geschäftsjahr"
+      opening: "Vor der Periode (Eröffnung)"
+      month: "Monat des Enddatums"
+    steps:
+      none: "Keine (eine einzige Periode)"
+      week: "Je Woche"
+      fortnight: "Je zwei Wochen"
+      month: "Je Monat"
+      bimester: "Je zwei Monate"
+      quarter: "Je Quartal"
+      semester: "Je Halbjahr"
+      year: "Je Jahr"
+    sources:
+      field: "Feld des Stammsatzes"
+      attribute: "Attribut der Kategorie"
+      formula: "Formel"
+    card_fields:
+      code: "Code (Quick Code)"
+      name: "Name"
+      category: "Kategorie"
+      kind: "Art"
+      description: "Beschreibung"
+      vat_number: "USt-IdNr."
+      siren: "SIREN"
+      siret: "SIRET"
+      email: "E-Mail"
+      phone: "Telefon"
+      contact_name: "Ansprechpartner"
+      address_line1: "Adresse"
+      address_line2: "Adresszusatz"
+      postcode: "Postleitzahl"
+      city: "Ort"
+      country: "Land"
+      iban: "IBAN"
+      bic: "BIC"
+      enabled: "Aktiv"
+      sale_price: "Verkaufspreis"
+      purchase_price: "Einkaufspreis"
+    operators:
+      eq: "gleich"
+      ne: "ungleich"
+      lt: "kleiner als"
+      le: "kleiner oder gleich"
+      gt: "größer als"
+      ge: "größer oder gleich"
+      contains: "enthält"
+    snapshot_kinds:
+      declaration: "Erklärung"
+      listing: "Liste"
+    formats:
+      csv: "CSV"
+      ods: "ODS (Tabellenkalkulation)"
+      pdf: "PDF"
+    starters:
+      sig:
+        name: "Soldes intermédiaires de gestion (Zwischenergebnisse, Frankreich)"
+        description: "Handelsspanne, Wertschöpfung, Bruttobetriebsergebnis, Betriebs-, Finanz-, außerordentliches und Jahresergebnis; Geschäftsjahr, Vorjahr, Veränderung."
+      clients_ca:
+        name: "Kunden: Umsatz und Saldo"
+        description: "Eine Zeile je aktivem Kunden: Ort, E-Mail, Umsatz der Periode, Kontosaldo; Kunden ohne Umsatz ausgeschlossen."
+    issues:
+      current_card: "Der aktuelle Stammsatz ({*}, card=*) ist nur in einer Liste sinnvoll: Betrag null."
+      scan_truncated: "Mehr als %{max} Buchungen für eine Referenz mit Gegenkonto oder Stammsatz zu lesen: Berechnung abgeschnitten."
+      ledger_unknown: "Journal %{code} in diesem Mandanten nicht gefunden: ignoriert."
+      module_disabled: "Das Modul %{code} ist inaktiv: Seine Beträge sind null."
+      forbidden: "Berechtigung %{permission} fehlt: Die durch sie geschützten Beträge sind null."
+      analytic_unknown: "Kostenstelle %{code} nicht gefunden: Betrag null."
+      analytic_ambiguous: "Die Kostenstelle %{code} existiert in mehreren Plänen: Geben Sie „plan=“ an."
+      card_unknown: "Stammsatz %{code} nicht gefunden: Betrag null."
+      cycle: "Die Zeile %{line} verweist direkt oder indirekt auf sich selbst: Betrag null."
+      formula_error: "Formel von %{line} nicht berechenbar (%{error}): Betrag null."
+      category_unknown: "Stammsatzkategorie %{code} in diesem Mandanten nicht gefunden: Liste leer."
+      cards_truncated: "Mehr als %{max} Stammsätze: Liste abgeschnitten."
+      legacy_line: "Zeile „%{line}“ nicht umgewandelt (%{formula}): als Hinweis übernommen, zu prüfen."
+      legacy_vat: "Zeile „%{line}“: Der USt.-Code der Legacy-Quelle lässt sich nicht von einem Mandanten auf einen anderen übertragen: Detail nicht übernommen, mit vat=CODE neu zu schreiben (siehe die USt.-Codes des Mandanten)."
+      legacy_reconciled: "Zeile „%{line}“: Die abgeglichenen Vorgänge werden zu ihrem Zahlungsdatum übernommen (Ausgleich), zu prüfen."
+      paid_card: "Der Filter bezahlt / unbezahlt gilt nicht für einen Stammsatz ({…}): Verwenden Sie eine Kontenreferenz mit card= (zum Beispiel [411%-s; card=*])."
+    modeles:
+      kinds:
+        report: "Erklärung eines Berichts"
+        listing: "Dokument einer Liste"
+      vocabulary:
+        groups:
+          declaration: "Die Erklärung"
+          dossier: "Der Mandant"
+          montants: "Beträge der Zeilen"
+          lignes: "Die angezeigten Zeilen (Liste)"
+          listing: "Die Liste"
+          fiche: "Der Stammsatz des Dokuments"
+          colonnes: "Spalten des Stammsatzes"
+          totaux: "Spaltensummen"
+          fiches: "Alle Stammsätze (Liste)"
+        declaration:
+          titre: "Titel (Name und Periode oder aufbewahrter Titel)"
+          note: "Aufbewahrte Beschreibung"
+          rapport: "Name des Berichts"
+          code: "Code des Berichts"
+          periode: "Periode (vom … bis …)"
+          debut: "Anfangsdatum"
+          fin: "Enddatum"
+          date: "Heutiges Datum"
+          jours: "Anzahl der Tage der Periode"
+          mois: "Anzahl der Monate der Periode"
+          annees: "Anzahl der Jahre der Periode"
+        dossier:
+          nom: "Name des Unternehmens"
+          tva: "USt-IdNr."
+          siren: "SIREN"
+          rue: "Straße"
+          numero: "Hausnummer"
+          code_postal: "Postleitzahl"
+          ville: "Ort"
+          pays: "Land"
+          telephone: "Telefon"
+        montants:
+          _any: "Betrag der Zeile CODE in der ersten Spalte; CODE_COL in der Spalte COL (zum Beispiel CA_N1)"
+        lignes:
+          code: "Code der Zeile"
+          libelle: "Bezeichnung (Konto und Kontobezeichnung bei einer Kontenliste)"
+          sorte: "Zeilenart (formula, title, heading1 …)"
+          style: "Stil (normal, bold, total)"
+          retrait: "Einzug (0 bis 5)"
+          compte: "Konto einer Zeile einer Kontenliste"
+          montant: "Betrag der ersten Spalte"
+          _any: "Betrag der Spalte mit dem Code CODE (zum Beispiel N, N1, P1)"
+        listing:
+          titre: "Aufbewahrter Titel"
+          note: "Aufbewahrte Beschreibung"
+          nom: "Name der Liste"
+          code: "Code der Liste"
+          periode: "Periode (vom … bis …)"
+          debut: "Anfangsdatum"
+          fin: "Enddatum"
+          date: "Heutiges Datum"
+        fiche:
+          code: "Quick Code des Stammsatzes"
+          nom: "Name des Stammsatzes"
+          courriel: "E-Mail-Adresse (Versand per E-Mail)"
+        colonnes:
+          _any: "Wert der Spalte mit dem Code CODE für den Stammsatz des Dokuments"
+        totaux:
+          _any: "Summe der Betragsspalte CODE"
+        fiches:
+          code: "Quick Code"
+          nom: "Name"
+          _any: "Wert der Spalte mit dem Code CODE"
+    errors:
+      documents:
+        unavailable: "Dokumente aus einer Vorlage erfordern die aktive Erweiterung „Dokumentvorlagen“."
+        too_many: "Höchstens %{max} Stammsätze je Anfrage."
+      mail:
+        subject_blank: "Der Betreff ist erforderlich."
+        body_blank: "Die Nachricht ist erforderlich."
+      code:
+        invalid: "Code: ein Buchstabe, dann Buchstaben, Ziffern oder „_“, höchstens 20 Zeichen."
+        taken: "Dieser Code ist bereits vergeben."
+        duplicate: "Dieser Code kommt zweimal vor."
+      name:
+        blank: "Der Name ist erforderlich."
+        too_long: "Der Name darf höchstens %{max} Zeichen lang sein."
+      decimals:
+        range: "Die Anzahl der Dezimalstellen liegt zwischen 0 und 2."
+      columns:
+        count: "1 bis %{max} Spalten."
+      label:
+        blank: "Die Bezeichnung ist erforderlich."
+        too_long: "Die Bezeichnung darf höchstens %{max} Zeichen lang sein."
+      choice:
+        invalid: "Ungültige Auswahl."
+      shift:
+        range: "Die Verschiebung darf höchstens %{max} Monate betragen."
+      column:
+        order: "Die Spalte %{code} muss vor dieser definiert sein."
+        unknown: "Unbekannte Spalte %{code}."
+      lines:
+        count: "1 bis %{max} Zeilen."
+      indent:
+        range: "Der Einzug liegt zwischen 0 und 5."
+      accounts:
+        single: "Eine Kontenliste verweist nur auf eine einzige Kontenreferenz, zum Beispiel [60%-s]."
+      line:
+        unknown: "Zeile %{code} unbekannt oder ohne Betrag."
+        cycle: "Die Zeilen verweisen zirkulär aufeinander."
+      attribute:
+        blank: "Attributschlüssel: Kleinbuchstaben, Ziffern oder „_“."
+      conditions:
+        count: "Höchstens %{max} Bedingungen."
+      run:
+        dates: "Das Anfangsdatum liegt nach dem Enddatum."
+      override:
+        unknown: "Korrigierter Betrag einer unbekannten Zeile oder Spalte (%{line}, %{column})."
+      title:
+        blank: "Der Titel ist erforderlich."
+        too_long: "Der Titel darf höchstens %{max} Zeichen lang sein."
+      keep:
+        none: "Markieren Sie mindestens einen Stammsatz."
+      import:
+        too_large: "Datei zu groß (höchstens %{max})."
+        json: "Diese Datei ist kein gültiges JSON."
+        format: "Diese Datei ist keine Definitionsdatei für Berichte und Listen."
+        version: "Unbekannte Formatversion %{version}."
+        empty: "Die Datei enthält keine Definition."
+        count: "Höchstens %{max} Definitionen je Datei."
+        structure: "Feld %{field} fehlerhaft."
+      legacy:
+        format: "Diese Datei ist keine von der Ursprungsanwendung exportierte Berichtsdefinition (Kopfzeile RAPAV)."
+      formula:
+        empty: "Die Formel ist leer."
+        too_long: "Formel zu lang (höchstens %{max} Zeichen)."
+        depth: "Formel zu tief verschachtelt (höchstens %{max} Ebenen)."
+        syntax: "Ungültige Formel bei Zeichen %{position}."
+        function: "Unbekannte Funktion: %{name}."
+        arguments: "Falsche Anzahl von Argumenten für %{name}."
+        round: "round: 0 bis %{max} Dezimalstellen."
+        from: "Ungültige FROM-Klausel: %{value}."
+        account: "Ungültige Kontenreferenz: %{value}."
+        card: "Ungültige Stammsatzreferenz: %{value}."
+        analytic: "Ungültige Kostenstellenreferenz: %{value}."
+        analytic_mode: "Mit „account=“ lässt eine Kostenstelle nur -s oder -S zu: %{value}."
+        option: "Option „%{name}“ unbekannt, wiederholt oder hier nicht zulässig: %{value}."
+        option_value: "Ungültiger Wert der Option „%{name}“: %{value}."
+        comparison: "if: Vergleich erwartet (>, <, >=, <=, =, <>)."
+        line_ref: "Auf eine Zeile (%{code}) kann hier nicht verwiesen werden."
+        column_ref: "Auf eine Spalte (@%{code}) kann nur in einer Spaltenformel verwiesen werden."
+        current_card: "Auf den aktuellen Stammsatz ({*}, card=*) kann nur in einer Liste verwiesen werden."
+        reference_in_column: "Eine Spaltenformel verweist nur auf Spalten (@CODE)."
+        line_unknown: "Unbekannte Zeile %{code}."
+        column_unknown: "Unbekannte Spalte %{code}."

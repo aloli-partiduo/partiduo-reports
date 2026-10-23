@@ -529,6 +529,20 @@ Contournement retiré.
 comme avant ; un listing filtré calcule désormais ses colonnes de fiches
 avec le filtre, que l'avertissement annonçait absent.
 
+=== D-REP-029 — Sept langues d'interface (23 octobre 2026)
+
+*Contexte.* L'interface passe de fr, en, nl à fr, en, nl, de, es, it, pt
+(`Partiduo::LOCALES`) ; les règles fiscales restent françaises et belges.
+`Reports::Numbers` met lui-même en forme montants et dates des PDF et des
+documents rendus.
+
+*Choix.* Locales `de`, `es`, `it`, `pt` (extension et écrans). Séparateurs
+et dates de `Numbers`, alignés sur `PartiduoUi::Format` : `de` `1.234,56`
+et `07.09.2026` ; `es` et `it` `1.234,56` et `07/09/2026` ; `pt` (portugais
+européen) `1 234,56` avec une espace insécable (U+00A0), `07/09/2026`. Le
+français garde l'espace fine insécable (U+202F), l'anglais la date ISO des
+documents. Une langue inconnue suit le français.
+
 == Amendements proposés
 
 À soumettre à l'utilisateur ; l'extension les contourne sans modifier

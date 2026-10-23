@@ -5,9 +5,31 @@ module Reports
   # langue courante (`I18n.locale`) : le PDF du socle reçoit des textes
   # déjà mis en forme. Le CSV et l'ODS gardent les montants bruts. Interne.
   module Numbers
-    # Séparateurs des milliers et des décimales, format des dates.
-    SEPARATORS = {"fr" => {" ", ","}, "nl" => {".", ","}, "en" => {",", "."}}
-    DATES      = {"fr" => "%d/%m/%Y", "nl" => "%d-%m-%Y", "en" => "%Y-%m-%d"}
+    # Séparateurs des milliers et des décimales, format des dates, par
+    # langue de l'interface (mêmes conventions que `PartiduoUi::Format`) :
+    # espace fine insécable en français, espace insécable en portugais
+    # européen. Une langue inconnue suit le français.
+    NARROW_NBSP = "\u202F"
+    NBSP        = "\u00A0"
+
+    SEPARATORS = {
+      "fr" => {NARROW_NBSP, ","},
+      "en" => {",", "."},
+      "nl" => {".", ","},
+      "de" => {".", ","},
+      "es" => {".", ","},
+      "it" => {".", ","},
+      "pt" => {NBSP, ","},
+    }
+    DATES = {
+      "fr" => "%d/%m/%Y",
+      "en" => "%Y-%m-%d",
+      "nl" => "%d-%m-%Y",
+      "de" => "%d.%m.%Y",
+      "es" => "%d/%m/%Y",
+      "it" => "%d/%m/%Y",
+      "pt" => "%d/%m/%Y",
+    }
 
     def self.locale : String
       code = I18n.locale.to_s[0, 2]
