@@ -25,7 +25,7 @@ pt:
       title: "Título principal"
       heading1: "Título"
       heading2: "Subtítulo"
-      heading3: "Entretítulo"
+      heading3: "Intertítulo"
       text: "Texto"
       note: "Observação"
       formula: "Fórmula"
@@ -116,7 +116,7 @@ pt:
       category_unknown: "Categoria de fichas %{code} não encontrada neste dossier: listagem vazia."
       cards_truncated: "Mais de %{max} fichas: listagem truncada."
       legacy_line: "Linha «%{line}» não convertida (%{formula}): retomada como observação, a rever."
-      legacy_vat: "Linha «%{line}»: o código de IVA da fonte legacy não se transpõe de um dossier para outro: detalhe não retomado, a reescrever com vat=CODE (ver os códigos de IVA do dossier)."
+      legacy_vat: "Linha «%{line}»: o código de IVA da origem legacy não se transpõe de um dossier para outro: detalhe não retomado, a reescrever com vat=CODE (ver os códigos de IVA do dossier)."
       legacy_reconciled: "Linha «%{line}»: as operações reconciliadas são retomadas na data de pagamento (conciliação), a verificar."
       paid_card: "O filtro pago / não pago não se aplica a uma ficha ({…}): utilize uma referência de contas com card= (por exemplo [411%-s; card=*])."
     modeles:

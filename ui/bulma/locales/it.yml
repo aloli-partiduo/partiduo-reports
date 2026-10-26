@@ -54,7 +54,7 @@ it:
       title: "Invia per e-mail"
       subject: "Oggetto"
       body: "Messaggio"
-      help: "Un messaggio per scheda, al suo indirizzo e-mail, con il suo documento in allegato; le schede senza indirizzo sono escluse. I messaggi partono alla convalida e sono registrati nel giornale."
+      help: "Un messaggio per scheda, al suo indirizzo e-mail, con il suo documento in allegato; le schede senza indirizzo sono escluse. I messaggi partono alla convalida e vengono tracciati."
       submit: "Invia"
       sent: "%{number} messaggio/i inviato/i; schede escluse: %{skipped}."
     keep:

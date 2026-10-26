@@ -45,7 +45,7 @@ pt:
       title: "Gerar um documento"
       template: "Modelo"
       scope: "Documentos"
-      per_card: "Um por ficha (arquivo ZIP)"
+      per_card: "Um por ficha (ficheiro ZIP)"
       whole: "Um para toda a listagem"
       pdf: "Em PDF"
       submit: "Gerar"
